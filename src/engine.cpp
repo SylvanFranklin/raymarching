@@ -1,4 +1,4 @@
-#include "engine.h"
+#include "engine.hpp"
 #include "util/scene.hpp"
 #include "vendor/imgui/imgui.h"
 #include "vendor/imgui/imgui_impl_glfw.h"
@@ -42,7 +42,7 @@ unsigned int Engine::initWindow(bool debug) {
 	//	glfwSetWindowOpacity(window, 1.0f);
 	//	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); //disables
 	// the cursor
-
+	this->mouse = make_unique<Mouse>(window);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		cout << "Failed to initialize GLAD" << endl;
 		return -1;
@@ -83,22 +83,22 @@ void Engine::initScene() {
 	scene.initVBO();
 }
 
-void Engine::initMatrices() {
-	modelLeft = mat4(1.0f);
-}
+void Engine::initMatrices() { modelLeft = mat4(1.0f); }
 
 void Engine::update() {
 	glfwPollEvents();
+	this->mouse->update();
+	this->influences[0] += this->mouse->deltaY;
+	this->influences[1] -= this->mouse->deltaX;
+
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
+
 	ImGui::NewFrame();
-
 	ImGui::Begin("Dev Tools", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-
 	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 8.0f));
 	ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.2f, 0.4f, 0.6f, 0.5f));
-
 	ImGuiIO &io = ImGui::GetIO();
 	float fps = io.Framerate;
 	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Performance");
@@ -125,7 +125,7 @@ void Engine::render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-	scene.setUniforms(modelLeft, view, projection, vec2(0,0));
+	scene.setUniforms(modelLeft, view, projection, vec2(0, 0));
 
 	defaultShader.setVector4f("influences", influences);
 	defaultShader.use();

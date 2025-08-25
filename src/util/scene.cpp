@@ -2,15 +2,10 @@
 
 Scene::Scene() {
 	this->indices = {
-		0, 1, 2 // first triangle
+		0, 1, 2
 	};
-	this->vertices = {-1.0, 1.0, 0.0,  -1.0, -1.0,
-					  0.0,	1.0, -1.0, 0.0,
-
-					  -1.0, 1.0, 0.0,  1.0,	 1.0,
-					  0.0,	1.0, -1.0, 0.0
-
-	};
+	this->vertices = {-1.0, 1.0, 0.0, -1.0, -1.0, 0.0, 1.0, -1.0, 0.0,
+					  -1.0, 1.0, 0.0, 1.0,	1.0,  0.0, 1.0, -1.0, 0.0};
 }
 
 void Scene::setShader(Shader &shader) { this->shader = shader; }
@@ -65,4 +60,3 @@ void Scene::initVBO() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 }
-

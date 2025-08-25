@@ -51,9 +51,8 @@ float octive_noise(float octives) {
     return valueNoise;
 }
 
-
 float cloud_whitenoise(vec2 p) {
-    float random = dot(p, vec2(12,78));
+    float random = dot(p, vec2(12, 78));
     random = sin(random);
     random = random * 29837.23;
     random = fract(random);
@@ -82,14 +81,13 @@ float cloud_octive_noise(float octives) {
 }
 
 float clouds() {
-    float cloud = cloud_octive_noise(16+cloudSlide)*0.3;
-    cloud += cloud_octive_noise(32+cloudSlide)*0.2;
-    cloud += cloud_octive_noise(64)*0.01;
-    cloud += cloud_octive_noise(128)*0.1;
+    float cloud = cloud_octive_noise(16 + cloudSlide) * 0.3;
+    cloud += cloud_octive_noise(32 + cloudSlide) * 0.2;
+    cloud += cloud_octive_noise(64) * 0.01;
+    cloud += cloud_octive_noise(128) * 0.1;
 
     return cloud;
 }
-
 
 void main() {
     float water_strength = 0.55;
@@ -136,8 +134,8 @@ void main() {
     vec4 theColor = vec4(color / 255.0, 1);
     float cloud = clouds();
 
-    if (cloud > 0.4 && valueNoise < 0.54){
-        theColor = vec4(cloud+0.4,cloud+0.4,cloud+0.4,1);
+    if (cloud > 0.4 && valueNoise < 0.54) {
+        theColor = vec4(cloud + 0.4, cloud + 0.4, cloud + 0.4, 1);
     }
 
     FragColor = theColor;
