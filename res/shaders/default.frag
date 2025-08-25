@@ -84,7 +84,7 @@ void main() {
         float boxFrame = sdBoxFrame(repeat(q, 0.9), vec3(0.1, 0.2, 0.1), 0.01);
         float chains = sdLink(repeat(q, 1.4), 0.4, 0.2, 0.05);
         float sphere = sdSphere(p);
-        float distance = chains;
+        float distance = boxFrame;
 
         // float distance = smin(boxFrame, cube, 0.5);
 

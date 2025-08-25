@@ -86,7 +86,7 @@ void Engine::initMatrices() { modelLeft = mat4(1.0f); }
 void Engine::update() {
 	glfwPollEvents();
 	this->mouse->update();
-	if (mouse->clicked) {
+	if (!mouse->clicked) {
 		this->influences[0] += this->mouse->deltaY;
 		this->influences[1] -= this->mouse->deltaX;
 	}
