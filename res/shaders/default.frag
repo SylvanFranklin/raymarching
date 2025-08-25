@@ -80,7 +80,7 @@ void main() {
                 break;
             }
 
-            float col = distanceTraveled + mod(distanceTraveled, 3);
+            float col = (5.0 / distanceTraveled);
 
             if (distance == boxFrame) {
                 color = vec3(1.0, 3.0, col) / 3;
