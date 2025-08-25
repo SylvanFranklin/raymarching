@@ -4,14 +4,18 @@ in vec2 uv;
 in vec4 dials;
 
 // https://iquilezles.org/articles/distfunctions/
-
 vec3 repeat(vec3 p, float spacing) {
     return mod(p + spacing * 0.5, spacing) - spacing * 0.5;
 }
 
+float sdRoundBox(vec3 p, vec3 b, float r) {
+    vec3 q = abs(p) - b + r;
+    return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0) - r;
+}
+
 float sdTorus(vec3 p, vec2 t) {
     vec2 q = vec2(length(p.xz) - t.x, p.y);
-    return length(q) - t.y;
+    return length(repeat(vec3(q, 1.0), 0.3)) - t.y;
 }
 
 mat2 rot2D(float angle) {
@@ -45,9 +49,9 @@ float smin(float a, float b, float k) {
 
 void main() {
     float distanceTraveled = 0;
-    float maximumDistance = 100;
+    float maximumDistance = 500;
     float mininumDistance = 0.001;
-    int maximumSteps = 200;
+    int maximumSteps = 100;
     vec3 ro = vec3(uv.x, uv.y, -3);
     vec3 rd = normalize(vec3(uv, 1));
     vec3 color = vec3(0);
@@ -61,11 +65,13 @@ void main() {
         q.xy *= rot2D(dials[2]);
 
         float boxFrame = sdBoxFrame(q, vec3(1.5, 1.5, 1.5), 0.1);
-
         float torus = sdTorus(p, vec2(0.25, 0.05));
+        float cube = sdRoundBox(repeat(q, 0.9), vec3(0.2, 0.4, 0.2), 0.01);
         float sphere = sdSphere(p);
+        float distance = cube;
 
-        float distance = smin(boxFrame, sphere, 0.5);
+        // float distance = smin(boxFrame, cube, 0.5);
+
         distanceTraveled += distance;
 
         if (distanceTraveled > maximumDistance || distance <= mininumDistance) {
@@ -74,12 +80,14 @@ void main() {
                 break;
             }
 
+            float col = distanceTraveled + mod(distanceTraveled, 3);
+
             if (distance == boxFrame) {
-                color = vec3(1.0, 3.0, distanceTraveled) / 3;
+                color = vec3(1.0, 3.0, col) / 3;
             } else if (distance == torus) {
-                color = vec3(distanceTraveled, 0, 0) / 10;
+                color = vec3(col, 0, 0) / 10;
             } else {
-                color = vec3(distanceTraveled, 0, distanceTraveled) / 9;
+                color = vec3(col, 0, col) / 9;
             }
             break;
         }
