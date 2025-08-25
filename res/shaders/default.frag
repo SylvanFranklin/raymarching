@@ -33,6 +33,11 @@ mat2 rot2D(float angle) {
     return mat2(c, -s, s, c);
 }
 
+float sdLink(vec3 p, float le, float r1, float r2) {
+    vec3 q = vec3(p.x, max(abs(p.y) - le, 0.0), p.z);
+    return length(vec2(length(q.xy) - r1, q.z)) - r2;
+}
+
 float sdBoxFrame(vec3 p, vec3 b, float e) {
     p = abs(p) - b;
     vec3 q = abs(p + e) - e;
@@ -77,8 +82,9 @@ void main() {
         float torus = sdTorus(p, vec2(0.25, 0.05));
         float cube = sdRoundBox(repeat(q, 0.9), vec3(0.1, 0.2, 0.1), 0.01);
         float boxFrame = sdBoxFrame(repeat(q, 0.9), vec3(0.1, 0.2, 0.1), 0.01);
+        float chains = sdLink(repeat(q, 1.4), 0.4, 0.2, 0.05);
         float sphere = sdSphere(p);
-        float distance = boxFrame;
+        float distance = chains;
 
         // float distance = smin(boxFrame, cube, 0.5);
 
@@ -96,6 +102,8 @@ void main() {
                 color = vec3(0.2, 0.0, col) / 3;
             } else if (distance == torus) {
                 color = vec3(col, 0, 0) / 10;
+            } else if (distance == chains) {
+                color = (q) - vec3(0.1, 0.1, col / 2) / 3;
             } else {
                 color = vec3(col, 0, col) / 9;
             }
