@@ -1,9 +1,7 @@
 #include "scene.hpp"
 
 Scene::Scene() {
-	this->indices = {
-		0, 1, 2
-	};
+	this->indices = {0, 1, 2};
 	this->vertices = {-1.0, 1.0, 0.0, -1.0, -1.0, 0.0, 1.0, -1.0, 0.0,
 					  -1.0, 1.0, 0.0, 1.0,	1.0,  0.0, 1.0, -1.0, 0.0};
 }
@@ -27,8 +25,8 @@ void Scene::draw() {
 }
 
 void Scene::setUniforms(const glm::mat4 &model, const glm::mat4 &view,
-						const glm::mat4 &projection,
-						const glm::vec2 &mouse_pos) const {
+						const glm::mat4 &projection, const glm::vec2 &mouse_pos,
+						const float &aspect) const {
 
 	glm::mat4 modelMatrix = model;
 	modelMatrix = translate(modelMatrix, glm::vec3(0.f, 0.f, 0.f));
@@ -40,6 +38,7 @@ void Scene::setUniforms(const glm::mat4 &model, const glm::mat4 &view,
 	this->shader.setMatrix4("view", view);
 	this->shader.setMatrix4("projection", projection);
 	this->shader.setVector2f("mouse", mouse_pos);
+	this->shader.setFloat("aspect", aspect);
 }
 
 unsigned int Scene::initVAO() {

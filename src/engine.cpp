@@ -36,8 +36,10 @@ unsigned int Engine::initWindow(bool debug) {
 	const GLFWvidmode *mode = glfwGetVideoMode(primaryMonitor);
 	this->width = mode->width;
 	this->height = mode->height;
+	this->aspect = (float)width / (float)height;
 	window = glfwCreateWindow(width, height, "Raymarcher", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
+
 	//	glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
 	//	glfwSetWindowOpacity(window, 1.0f);
 	//	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); //disables
@@ -57,11 +59,7 @@ unsigned int Engine::initWindow(bool debug) {
 	// Setup Dear ImGui context
 	ImGui::CreateContext();
 	ImGuiIO &io = ImGui::GetIO();
-	io.ConfigFlags |=
-		ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-	io.ConfigFlags |=
-		ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
-
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
 	return 0;
@@ -124,9 +122,7 @@ void Engine::update() {
 void Engine::render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-
-	scene.setUniforms(modelLeft, view, projection, vec2(0, 0));
-
+	scene.setUniforms(modelLeft, view, projection, vec2(0, 0), aspect);
 	defaultShader.setVector4f("influences", influences);
 	defaultShader.use();
 	scene.draw();

@@ -27,8 +27,7 @@ float sdBoxFrame(vec3 p, vec3 b, float e) {
         length(max(vec3(q.x, q.y, p.z), 0.0)) + min(max(q.x, max(q.y, p.z)), 0.0));
 }
 
-float sdSphere(vec3 p)
-{
+float sdSphere(vec3 p) {
     vec3 q = vec3(p.x - dials[3], p.y, p.z);
     q.yz *= rot2D(dials[0]);
     q.xz *= rot2D(dials[1]);
@@ -68,7 +67,7 @@ void main() {
 
         if (distanceTraveled > maximumDistance || distance <= mininumDistance) {
             if (distanceTraveled > maximumDistance) {
-                color = vec3(0.2, 0.3, 0);
+                color = vec3(0.2, 0.0, 0);
                 break;
             }
             if (distance == boxFrame) {

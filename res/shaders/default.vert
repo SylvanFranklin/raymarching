@@ -5,11 +5,12 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform vec4 influences;
+uniform float aspect;
 out vec2 uv;
 out vec4 dials;
 
 void main() {
     gl_Position = vec4(aPos, 1.0);
-    uv = vec2(aPos.x, aPos.y);
+    uv = vec2(aPos.x * aspect, aPos.y);
     dials = influences;
 }
