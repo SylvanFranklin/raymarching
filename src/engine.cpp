@@ -86,8 +86,10 @@ void Engine::initMatrices() { modelLeft = mat4(1.0f); }
 void Engine::update() {
 	glfwPollEvents();
 	this->mouse->update();
-	this->influences[0] += this->mouse->deltaY;
-	this->influences[1] -= this->mouse->deltaX;
+	if (mouse->clicked) {
+		this->influences[0] += this->mouse->deltaY;
+		this->influences[1] -= this->mouse->deltaX;
+	}
 
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
@@ -122,7 +124,8 @@ void Engine::update() {
 void Engine::render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	scene.setUniforms(modelLeft, view, projection, vec2(0, 0), aspect);
+	scene.setUniforms(modelLeft, view, projection, vec2(0, 0), aspect,
+					  mouse->clicked);
 	defaultShader.setVector4f("influences", influences);
 	defaultShader.use();
 	scene.draw();

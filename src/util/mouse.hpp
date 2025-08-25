@@ -11,6 +11,7 @@ class Mouse {
 	void update();
 	double sensitivity = 100;
 	double offsetX, offsetY, deltaX, deltaY;
+	bool clicked = false;
 	glm::vec2 get_pos();
 	glm::vec2 get_delta();
 

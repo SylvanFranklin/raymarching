@@ -3,6 +3,15 @@ out vec4 FragColor;
 in vec2 uv;
 in vec4 dials;
 
+vec3 twist(vec3 p) {
+    const float k = 0.2;
+    float c = cos(k * p.y);
+    float s = sin(k * p.y);
+    mat2 m = mat2(c, -s, s, c);
+    vec3 q = vec3(m * p.xz, p.y);
+    return q;
+}
+
 // https://iquilezles.org/articles/distfunctions/
 vec3 repeat(vec3 p, float spacing) {
     return mod(p + spacing * 0.5, spacing) - spacing * 0.5;
@@ -27,6 +36,7 @@ mat2 rot2D(float angle) {
 float sdBoxFrame(vec3 p, vec3 b, float e) {
     p = abs(p) - b;
     vec3 q = abs(p + e) - e;
+
     return min(min(
             length(max(vec3(p.x, q.y, q.z), 0.0)) + min(max(p.x, max(q.y, q.z)), 0.0),
             length(max(vec3(q.x, p.y, q.z), 0.0)) + min(max(q.x, max(p.y, q.z)), 0.0)),
@@ -49,9 +59,9 @@ float smin(float a, float b, float k) {
 
 void main() {
     float distanceTraveled = 0;
-    float maximumDistance = 500;
+    float maximumDistance = 100;
     float mininumDistance = 0.001;
-    int maximumSteps = 100;
+    int maximumSteps = 60;
     vec3 ro = vec3(uv.x, uv.y, -3);
     vec3 rd = normalize(vec3(uv, 1));
     vec3 color = vec3(0);
@@ -59,16 +69,16 @@ void main() {
     for (int i = 0; i < maximumSteps; i++)
     {
         vec3 p = ro + (rd * distanceTraveled);
-        vec3 q = vec3(p.x - dials[3], p.y, p.z);
+        vec3 q = twist(vec3(p.x - dials[3], p.y, p.z));
         q.yz *= rot2D(dials[0]);
         q.xz *= rot2D(dials[1]);
         q.xy *= rot2D(dials[2]);
 
-        float boxFrame = sdBoxFrame(q, vec3(1.5, 1.5, 1.5), 0.1);
         float torus = sdTorus(p, vec2(0.25, 0.05));
-        float cube = sdRoundBox(repeat(q, 0.9), vec3(0.2, 0.4, 0.2), 0.01);
+        float cube = sdRoundBox(repeat(q, 0.9), vec3(0.1, 0.2, 0.1), 0.01);
+        float boxFrame = sdBoxFrame(repeat(q, 0.9), vec3(0.1, 0.2, 0.1), 0.01);
         float sphere = sdSphere(p);
-        float distance = cube;
+        float distance = boxFrame;
 
         // float distance = smin(boxFrame, cube, 0.5);
 
@@ -83,7 +93,7 @@ void main() {
             float col = (5.0 / distanceTraveled);
 
             if (distance == boxFrame) {
-                color = vec3(1.0, 3.0, col) / 3;
+                color = vec3(0.2, 0.0, col) / 3;
             } else if (distance == torus) {
                 color = vec3(col, 0, 0) / 10;
             } else {

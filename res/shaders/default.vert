@@ -6,6 +6,7 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform vec4 influences;
 uniform float aspect;
+uniform bool clicked;
 out vec2 uv;
 out vec4 dials;
 
