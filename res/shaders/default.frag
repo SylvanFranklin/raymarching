@@ -1,8 +1,11 @@
 #version 330 core
-out vec4 FragColor;
+uniform bool clicked;
+uniform float time;
+
 in vec2 uv;
 in vec4 dials;
-in float delta;
+
+out vec4 FragColor;
 
 vec3 twist(vec3 p) {
     const float k = 0.4;
@@ -76,16 +79,18 @@ void main() {
     {
         vec3 p = ro + (rd * distanceTraveled);
         vec3 q = twist(vec3(p.x - dials[3], p.y, p.z));
-        q.yz *= rot2D(dials[0] + delta);
-        q.xz *= rot2D(dials[1] + delta);
-        q.xy *= rot2D(dials[2] - delta);
+        q.yz *= rot2D(dials[0] + time / 10);
+        q.xz *= rot2D(dials[1] + time / 3);
+        q.xy *= rot2D(dials[2] - time / 8);
 
         float torus = sdTorus(p, vec2(0.25, 0.05));
         float cube = sdRoundBox(vec3(0), 10 * vec3(0.1, 0.2, 0.1), 0.01);
         float boxFrame = sdBoxFrame(repeat(q, 0.9), vec3(0.1, 0.2, 0.1), 0.01);
-        float chains = sdLink(repeat(q, 1.4), 0.4, 0.2, 0.05);
+        float chains = sdLink(repeat(q, 1.4), 0.4, 0.1, 0.005);
         float sphere = sdSphere(p);
+
         float distance = boxFrame;
+        if (clicked) distance = chains;
 
         // float distance = smin(boxFrame, cube, 0.5);
 
@@ -104,7 +109,7 @@ void main() {
             } else if (distance == torus) {
                 color = vec3(col, 0, 0) / 10;
             } else if (distance == chains) {
-                color = (q) - vec3(0.1, 0.1, col / 2) / 3;
+                color = vec3(0.2, col, 0.0) / 3;
             } else {
                 color = vec3(col, 0, col) / 9;
             }
