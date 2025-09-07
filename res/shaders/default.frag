@@ -2,9 +2,10 @@
 out vec4 FragColor;
 in vec2 uv;
 in vec4 dials;
+in float delta;
 
 vec3 twist(vec3 p) {
-    const float k = 0.2;
+    const float k = 0.4;
     float c = cos(k * p.y);
     float s = sin(k * p.y);
     mat2 m = mat2(c, -s, s, c);
@@ -12,7 +13,7 @@ vec3 twist(vec3 p) {
     return q;
 }
 
-// https://iquilezles.org/articles/distfunctions/
+// https://[quilezles.org/articles/distfunctions/
 vec3 repeat(vec3 p, float spacing) {
     return mod(p + spacing * 0.5, spacing) - spacing * 0.5;
 }
@@ -75,12 +76,12 @@ void main() {
     {
         vec3 p = ro + (rd * distanceTraveled);
         vec3 q = twist(vec3(p.x - dials[3], p.y, p.z));
-        q.yz *= rot2D(dials[0]);
-        q.xz *= rot2D(dials[1]);
-        q.xy *= rot2D(dials[2]);
+        q.yz *= rot2D(dials[0] + delta);
+        q.xz *= rot2D(dials[1] + delta);
+        q.xy *= rot2D(dials[2] - delta);
 
         float torus = sdTorus(p, vec2(0.25, 0.05));
-        float cube = sdRoundBox(repeat(q, 0.9), vec3(0.1, 0.2, 0.1), 0.01);
+        float cube = sdRoundBox(vec3(0), 10 * vec3(0.1, 0.2, 0.1), 0.01);
         float boxFrame = sdBoxFrame(repeat(q, 0.9), vec3(0.1, 0.2, 0.1), 0.01);
         float chains = sdLink(repeat(q, 1.4), 0.4, 0.2, 0.05);
         float sphere = sdSphere(p);
@@ -99,7 +100,7 @@ void main() {
             float col = (5.0 / distanceTraveled);
 
             if (distance == boxFrame) {
-                color = vec3(0.2, 0.0, col) / 3;
+                color = vec3(0.0, 0.2, col) / 3;
             } else if (distance == torus) {
                 color = vec3(col, 0, 0) / 10;
             } else if (distance == chains) {

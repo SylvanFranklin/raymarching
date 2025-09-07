@@ -119,13 +119,14 @@ void Engine::update() {
 	float currentFrame = glfwGetTime();
 	deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
+	time += deltaTime;
 }
 
 void Engine::render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	scene.setUniforms(modelLeft, view, projection, vec2(0, 0), aspect,
-					  mouse->clicked);
+					  mouse->clicked, time);
 	defaultShader.setVector4f("influences", influences);
 	defaultShader.use();
 	scene.draw();

@@ -34,6 +34,7 @@ class Engine {
 
   public:
 	Engine();
+	float time = 0.00; 
 	~Engine();
 	unique_ptr<ShaderManager> shaderManager;
 	unique_ptr<Mouse> mouse;
