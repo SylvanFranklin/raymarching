@@ -1,13 +1,14 @@
-# Basic 3d Template
+# March them rays yo
 
-Clone from this branch
+TODO
+- Loading screen, title screen
+- Deeper fractals
+- Set up a bunch of uniforms 22?
+- Figure out how to get the funky nob thing working
+- Remove the visual artifacts of the clipping plane?
 
-```sh
-git clone -b 3d-template https://github.com/SylvanFranklin/3D-Rendering-Resources 3d-template
-```
+DOING
+- Remove C++ 
 
-With a custom name
-
-```sh
-git clone -b 3d-template https://github.com/SylvanFranklin/3D-Rendering-Resources custom-name
-```
+DONE
+- Time uniform
