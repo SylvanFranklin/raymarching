@@ -1,10 +1,9 @@
 #version 330 core
 uniform bool clicked;
 uniform float time;
+uniform vec4 influences;
 
 in vec2 uv;
-in vec4 dials;
-
 out vec4 FragColor;
 
 vec3 twist(vec3 p) {
@@ -53,10 +52,10 @@ float sdBoxFrame(vec3 p, vec3 b, float e) {
 }
 
 float sdSphere(vec3 p) {
-    vec3 q = vec3(p.x - dials[3], p.y, p.z);
-    q.yz *= rot2D(dials[0]);
-    q.xz *= rot2D(dials[1]);
-    q.xy *= rot2D(dials[2]);
+    vec3 q = vec3(p.x - influences[3], p.y, p.z);
+    q.yz *= rot2D(influences[0]);
+    q.xz *= rot2D(influences[1]);
+    q.xy *= rot2D(influences[2]);
     return length(repeat(q, 0.5)) - 0.1;
     //    return length(p)-0.2;
 }
@@ -78,10 +77,10 @@ void main() {
     for (int i = 0; i < maximumSteps; i++)
     {
         vec3 p = ro + (rd * distanceTraveled);
-        vec3 q = twist(vec3(p.x - dials[3], p.y, p.z));
-        q.yz *= rot2D(dials[0] + time / 10);
-        q.xz *= rot2D(dials[1] + time / 3);
-        q.xy *= rot2D(dials[2] - time / 8);
+        vec3 q = twist(vec3(p.x - influences[3], p.y, p.z));
+        q.yz *= rot2D(influences[0] + time / 10);
+        q.xz *= rot2D(influences[1] + time / 3);
+        q.xy *= rot2D(influences[2] - time / 8);
 
         float torus = sdTorus(p, vec2(0.25, 0.05));
         float cube = sdRoundBox(vec3(0), 10 * vec3(0.1, 0.2, 0.1), 0.01);
@@ -91,7 +90,6 @@ void main() {
 
         float distance = boxFrame;
         if (clicked) distance = chains;
-
         // float distance = smin(boxFrame, cube, 0.5);
 
         distanceTraveled += distance;
