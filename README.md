@@ -1,5 +1,8 @@
 # March them rays yo
 
+TO be YouBute content soon. If you know what you're doing feel free to PR. We would love for some code review if you're cracked!
+
+
 TODO
 - Loading screen, title screen
 - Deeper fractals
