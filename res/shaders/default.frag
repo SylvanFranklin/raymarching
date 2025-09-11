@@ -6,8 +6,14 @@ uniform vec4 influences;
 in vec2 uv;
 out vec4 FragColor;
 
+const float maximumDistance = 100;
+const float mininumDistance = 0.001;
+const int maximumSteps = 60;
+
+// Utils
+
 vec3 twist(vec3 p) {
-    const float k = 0.4;
+    const float k = 0.2;
     float c = cos(k * p.y);
     float s = sin(k * p.y);
     mat2 m = mat2(c, -s, s, c);
@@ -20,6 +26,25 @@ vec3 repeat(vec3 p, float spacing) {
     return mod(p + spacing * 0.5, spacing) - spacing * 0.5;
 }
 
+mat2 rot2D(float angle) {
+    float s = sin(angle);
+    float c = cos(angle);
+    return mat2(c, -s, s, c);
+}
+
+// Smooth min between two floats
+float smin(float a, float b, float k) {
+    float h = max(k - abs(a - b), 0.0) / k;
+    return min(a, b) - h * h * h * k * (1.0 / 6.0);
+}
+
+
+// Shapes
+
+float sdSphere(vec3 p, float r) {
+    return length(p)-r;
+}
+
 float sdRoundBox(vec3 p, vec3 b, float r) {
     vec3 q = abs(p) - b + r;
     return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0) - r;
@@ -28,12 +53,6 @@ float sdRoundBox(vec3 p, vec3 b, float r) {
 float sdTorus(vec3 p, vec2 t) {
     vec2 q = vec2(length(p.xz) - t.x, p.y);
     return length(repeat(vec3(q, 1.0), 0.3)) - t.y;
-}
-
-mat2 rot2D(float angle) {
-    float s = sin(angle);
-    float c = cos(angle);
-    return mat2(c, -s, s, c);
 }
 
 float sdLink(vec3 p, float le, float r1, float r2) {
@@ -46,72 +65,40 @@ float sdBoxFrame(vec3 p, vec3 b, float e) {
     vec3 q = abs(p + e) - e;
 
     return min(min(
-            length(max(vec3(p.x, q.y, q.z), 0.0)) + min(max(p.x, max(q.y, q.z)), 0.0),
-            length(max(vec3(q.x, p.y, q.z), 0.0)) + min(max(q.x, max(p.y, q.z)), 0.0)),
-        length(max(vec3(q.x, q.y, p.z), 0.0)) + min(max(q.x, max(q.y, p.z)), 0.0));
+    length(max(vec3(p.x, q.y, q.z), 0.0)) + min(max(p.x, max(q.y, q.z)), 0.0),
+    length(max(vec3(q.x, p.y, q.z), 0.0)) + min(max(q.x, max(p.y, q.z)), 0.0)),
+    length(max(vec3(q.x, q.y, p.z), 0.0)) + min(max(q.x, max(q.y, p.z)), 0.0));
 }
 
-float sdSphere(vec3 p) {
-    vec3 q = vec3(p.x - influences[3], p.y, p.z);
-    q.yz *= rot2D(influences[0]);
-    q.xz *= rot2D(influences[1]);
-    q.xy *= rot2D(influences[2]);
-    return length(repeat(q, 0.5)) - 0.1;
-    //    return length(p)-0.2;
+
+float map(vec3 ro, vec3 rd, float distanceTraveled){
+    vec3 p = ro + (rd * distanceTraveled);
+    vec3 q = twist(vec3(p.x - influences[3], p.y, p.z));
+
+    q.yz *= rot2D(influences[0] + time / 10);
+    q.xz *= rot2D(influences[1] + time / 30);
+    q.xy *= rot2D(influences[2] - time / 80);
+
+    float distance = sdBoxFrame(repeat(q, 0.42), vec3(0.2, 0.2, 0), 1);
+    return distance;
 }
 
-float smin(float a, float b, float k) {
-    float h = max(k - abs(a - b), 0.0) / k;
-    return min(a, b) - h * h * h * k * (1.0 / 6.0);
-}
 
 void main() {
     float distanceTraveled = 0;
-    float maximumDistance = 100;
-    float mininumDistance = 0.001;
-    int maximumSteps = 60;
     vec3 ro = vec3(uv.x, uv.y, -3);
     vec3 rd = normalize(vec3(uv, 1));
     vec3 color = vec3(0);
 
     for (int i = 0; i < maximumSteps; i++)
     {
-        vec3 p = ro + (rd * distanceTraveled);
-        vec3 q = twist(vec3(p.x - influences[3], p.y, p.z));
-        q.yz *= rot2D(influences[0] + time / 10);
-        q.xz *= rot2D(influences[1] + time / 3);
-        q.xy *= rot2D(influences[2] - time / 8);
+        distanceTraveled += map(ro,rd, distanceTraveled);
 
-        float torus = sdTorus(p, vec2(0.25, 0.05));
-        float cube = sdRoundBox(vec3(0), 10 * vec3(0.1, 0.2, 0.1), 0.01);
-        float boxFrame = sdBoxFrame(repeat(q, 0.9), vec3(0.1, 0.2, 0.1), 0.01);
-        float chains = sdLink(repeat(q, 1.4), 0.4, 0.1, 0.005);
-        float sphere = sdSphere(p);
-
-        float distance = boxFrame;
-        if (clicked) distance = chains;
-        // float distance = smin(boxFrame, cube, 0.5);
-
-        distanceTraveled += distance;
-
-        if (distanceTraveled > maximumDistance || distance <= mininumDistance) {
-            if (distanceTraveled > maximumDistance) {
-                color = vec3(0.0, 0.0, 0);
-                break;
-            }
-
-            float col = (5.0 / distanceTraveled);
-
-            if (distance == boxFrame) {
-                color = vec3(0.0, 0.2, col) / 3;
-            } else if (distance == torus) {
-                color = vec3(col, 0, 0) / 10;
-            } else if (distance == chains) {
-                color = vec3(0.2, col, 0.0) / 3;
-            } else {
-                color = vec3(col, 0, col) / 9;
-            }
-            break;
+        if(distanceTraveled>maximumDistance){
+            color = vec3(1,0,0);
+        }else{
+            float col = (1/distanceTraveled);
+            color = vec3(col/4,0,col/20);
         }
     }
     FragColor = vec4(color, 1);
