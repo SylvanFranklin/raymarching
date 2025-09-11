@@ -53,6 +53,11 @@ Shader ShaderManager::loadShaderFromFile(const char *vShaderFile,
 	} catch (std::exception &e) {
 		std::cout << "ERROR::SHADER: Failed to read shader files" << std::endl;
 	}
+
+	this->vertexCode = vertexCode;
+	this->fragmentCode = fragmentCode;
+	this->geometryCode = geometryCode;
+
 	const char *vShaderCode = vertexCode.c_str();
 	const char *fShaderCode = fragmentCode.c_str();
 	const char *gShaderCode = geometryCode.c_str();

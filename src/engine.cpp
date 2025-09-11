@@ -3,6 +3,7 @@
 #include "vendor/imgui/imgui.h"
 #include "vendor/imgui/imgui_impl_glfw.h"
 #include "vendor/imgui/imgui_impl_opengl3.h"
+#include <fstream>
 #include <iostream>
 #include <memory>
 
@@ -88,9 +89,8 @@ void Engine::update() {
 		pulse += deltaTime;
 	} else {
 		pulse = 0;
-		cout << "reset" << endl;
+		// cout << "reset" << endl;
 	}
-
 
 	glfwPollEvents();
 	this->mouse->update();
@@ -119,6 +119,11 @@ void Engine::update() {
 	ImGui::SliderFloat("Rotation Y", &influences[1], 0.0f, 6.5f, "%.3f");
 	ImGui::SliderFloat("Rotation Z", &influences[2], 0.0f, 6.5f, "%.3f");
 	ImGui::SliderFloat("X Pos", &influences[3], -5.0f, 5.0f, "%.3f");
+
+	if (ImGui::Button("SAVE")) {
+		this->save();
+	}
+
 	ImGui::Spacing();
 	ImGui::PopStyleColor();
 	ImGui::PopStyleVar(2);
@@ -151,3 +156,16 @@ Engine::~Engine() {
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 }
+
+void Engine::save() {
+	cout << "saved" << endl;
+	std::ofstream fwriter("../saves/this.frag");
+	std::ofstream vwriter("../saves/this.vert");
+	std::ofstream uwriter("../saves/uniforms.text");
+	fwriter << this->shaderManager->fragmentCode;
+	vwriter << this->shaderManager->vertexCode;
+	fwriter.close();
+	vwriter.close();
+}
+
+

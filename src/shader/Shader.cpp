@@ -7,6 +7,10 @@ Shader &Shader::use() {
 
 void Shader::compile(const char *vertexSource, const char *fragmentSource,
 					 const char *geometrySource) {
+
+	this->vertexSource = vertexSource;
+	this->fragmentSource = fragmentSource;
+
 	unsigned int sVertex, sFragment, gShader;
 	// vertex Shader
 	sVertex = glCreateShader(GL_VERTEX_SHADER);
@@ -106,4 +110,10 @@ void Shader::checkCompileErrors(unsigned int object, string type) {
 				 << endl;
 		}
 	}
+}
+
+string Shader::dumpConfig() {
+	string format = "";
+
+	return "";
 }

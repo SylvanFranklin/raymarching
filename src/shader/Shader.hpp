@@ -5,11 +5,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
-using std::string, std::ifstream, std::stringstream, std::cout, std::endl;
+using std::string, std::ifstream, std::stringstream, std::cout, std::endl, std::tuple;
 
 class Shader {
   public:
 	unsigned int ID;
+	const char *vertexSource;
+	const char *fragmentSource;
 	Shader() {}
 	Shader &use();
 	// compiles and links the shaders up
@@ -78,6 +80,8 @@ class Shader {
 	/// @param object the shader object to check
 	/// @param type the type of shader object (vertex, fragment, geometry)
 	void checkCompileErrors(unsigned int object, std::string type);
+
+	string dumpConfig();
 };
 
 #endif

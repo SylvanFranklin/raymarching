@@ -47,6 +47,7 @@ class Engine {
 
 	unsigned int initWindow(bool debug = false);
 	void initShaders();
+	void save();
 	void initScene();
 	void processInput();
 	void initMatrices();
