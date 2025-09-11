@@ -26,8 +26,8 @@ void Scene::draw() {
 
 void Scene::setUniforms(const glm::mat4 &model, const glm::mat4 &view,
 						const glm::mat4 &projection, const glm::vec2 &mouse_pos,
-						const float &aspect, bool &clicked,
-						const float &time) const {
+						const float &aspect, bool &clicked, const float &time,
+						const float &pulse) const {
 
 	glm::mat4 modelMatrix = model;
 	modelMatrix = translate(modelMatrix, glm::vec3(0.f, 0.f, 0.f));
@@ -41,6 +41,7 @@ void Scene::setUniforms(const glm::mat4 &model, const glm::mat4 &view,
 	this->shader.setVector2f("mouse", mouse_pos);
 	this->shader.setFloat("aspect", aspect);
 	this->shader.setFloat("time", time);
+	this->shader.setFloat("pulse", pulse);
 	this->shader.setInteger("clicked", clicked ? 1 : 0);
 }
 
