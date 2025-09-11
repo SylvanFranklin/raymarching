@@ -21,6 +21,7 @@ class Engine {
 	float aspect;
 	int width = 1920;
 	int height = 1080;
+	float pulse = 0.0;
 	const char *save_filename = "/res/settings.txt";
 	mat4 modelLeft;	 // Model matrix for a 3D object
 	mat4 projection; // Orthographic projection matrix maps a 3D scene to a
