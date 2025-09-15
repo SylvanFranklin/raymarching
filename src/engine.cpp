@@ -89,8 +89,9 @@ void Engine::update() {
 		pulse += deltaTime;
 	} else {
 		pulse = 0;
-		// cout << "reset" << endl;
+		cout << "reset" << endl;
 	}
+
 
 	glfwPollEvents();
 	this->mouse->update();

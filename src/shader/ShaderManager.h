@@ -1,10 +1,9 @@
 #ifndef GRAPHICS_SHADERMANAGER_H
 #define GRAPHICS_SHADERMANAGER_H
 
-#include "Shader.h"
-
 #include <iostream>
 #include <map>
+#include "Shader.hpp"
 
 class ShaderManager {
   public:
