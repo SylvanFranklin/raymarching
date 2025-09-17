@@ -13,11 +13,11 @@ To be YouBute content soon. If you know what you're doing feel free to PR. We wo
 - Lighting
 
 ### DOING
-- Remove C++ bloat
-- Mirrors
 
 ### DONE
 - Time uniform
+- Remove C++ bloat
+- Mirrors
 
 ## Media:
 #### These are some examples we have for some neat visuals. We are working on 3d fractals.
