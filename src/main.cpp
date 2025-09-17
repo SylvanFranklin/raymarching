@@ -1,4 +1,5 @@
 #include "engine.hpp"
+#include <JuceHeader.h>
 
 int main(int argc, char *argv[]) {
 
