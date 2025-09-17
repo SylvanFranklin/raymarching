@@ -85,11 +85,16 @@ void Engine::initScene() {
 void Engine::initMatrices() { modelLeft = mat4(1.0f); }
 
 void Engine::update() {
-	if (pulse < 3) {
+	if (pulseUp) {
 		pulse += deltaTime;
+        if(pulse>=1){
+            pulseUp = false;
+        }
 	} else {
-		pulse = 0;
-		cout << "reset" << endl;
+		pulse-=deltaTime;
+        if(pulse<=0){
+            pulseUp = true;
+        }
 	}
 
 

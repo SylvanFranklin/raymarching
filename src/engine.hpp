@@ -58,6 +58,7 @@ class Engine {
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;
 	vec4 influences = vec4(0.0, 0.0, 0.0, 0.0);
+    bool pulseUp = true;
 
 	bool shouldClose();
 };
