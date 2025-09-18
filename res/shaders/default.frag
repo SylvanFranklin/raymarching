@@ -9,14 +9,9 @@ out vec4 FragColor;
 
 const float maximumDistance = 10;
 const float mininumDistance = 0.001;
-const int maximumSteps = 60;
+const int maximumSteps = 100;
 
 // Utils
-
-vec3 reflect(vec3 ro, vec3 rd, float distanceTo, vec3 normal, float totalDistance){
-    vec3 reflected = ro + (rd * distanceTo) + normal*(totalDistance-distanceTo);
-    return reflected;
-}
 
 vec3 twist(vec3 p) {
     const float k = 0.4;
@@ -44,17 +39,16 @@ float smin(float a, float b, float k) {
     return min(a, b) - h * h * h * k * (1.0 / 6.0);
 }
 
-
 // Shapes
 
 float sdSphere(vec3 p, float r) {
     return length(p) - r;
 }
 
-float sdBox( vec3 p, vec3 b )
+float sdBox(vec3 p, vec3 b)
 {
     vec3 q = abs(p) - b;
-    return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
+    return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
 }
 
 float sdRoundBox(vec3 p, vec3 b, float r) {
@@ -77,9 +71,17 @@ float sdBoxFrame(vec3 p, vec3 b, float e) {
     vec3 q = abs(p + e) - e;
 
     return min(min(
-        length(max(vec3(p.x, q.y, q.z), 0.0)) + min(max(p.x, max(q.y, q.z)), 0.0),
-        length(max(vec3(q.x, p.y, q.z), 0.0)) + min(max(q.x, max(p.y, q.z)), 0.0)),
-        length(max(vec3(q.x, q.y, p.z), 0.0)) + min(max(q.x, max(q.y, p.z)), 0.0));
+    length(max(vec3(p.x, q.y, q.z), 0.0)) + min(max(p.x, max(q.y, q.z)), 0.0),
+    length(max(vec3(q.x, p.y, q.z), 0.0)) + min(max(q.x, max(p.y, q.z)), 0.0)),
+    length(max(vec3(q.x, q.y, p.z), 0.0)) + min(max(q.x, max(q.y, p.z)), 0.0));
+}
+
+float sdCross(vec3 p)
+{
+    float da = max(abs(p.x),abs(p.y));
+    float db = max(abs(p.y),abs(p.z));
+    float dc = max(abs(p.z),abs(p.x));
+    return min(da,min(db,dc))-1.0;
 }
 
 //float map(vec3 ro, vec3 rd, float distanceTraveled) {
@@ -97,20 +99,75 @@ float sdBoxFrame(vec3 p, vec3 b, float e) {
 //    return distance;
 //}
 
-// https://iquilezles.org/articles/normalsSDF
+
+vec2 closest(vec2 obj1, vec2 obj2){
+    if (obj1.x < obj2.x){
+        return obj1;
+    }
+    return obj2;
+}
+
+vec2 closestObject(vec3 p){
+    mat2 r = rot2D(-0.785398 + time/3);
+//    mat2 r45 = rot2D(-0.785398-influences[3]);
+//    mat2 r45_ = rot2D(0.785398+influences[3]);
+//
+//    vec3 boxPos1 = p;
+//    vec3 boxPos2 = p;
+//    boxPos1.xz *= r45;
+//    boxPos2.xz *= r45_;
+//    boxPos1.z-=1.5;
+//    boxPos2.z-=1.5;
+//    vec2 box = vec2(sdBox(boxPos1, vec3(2, 2, 0.001)), 0);
+//    vec2 box2 = vec2(sdBox(boxPos2, vec3(2, 2, 0.001)), 0);
+    vec3 spherePos = p;
+    spherePos.x -= influences[2];
+
+    vec2 sphere = vec2(sdSphere(spherePos, influences[3]), 0);
+//    return closest(box, sphere);
+
+
+    p.zy *= r;
+    p.xz *= r;
+    float d = sdBox(p,vec3(1));
+
+    float s = 2.0;
+    for( int m=0; m<4; m++ )
+    {
+        vec3 a = mod( p*s, 2.0 )-1.0;
+        s *= 3.0;
+        vec3 r = 1.0 - 3.0*abs(a);
+
+        float c = sdCross(r)/s;
+        d = max(d,c);
+    }
+    return closest(vec2(d,2),sphere);
+
+    return vec2(d,2);
+
+}
+
+// https://michaelwalczyk.com/blog-ray-marching.html
 vec3 GetSurfaceNormal(vec3 p)
 {
-    float d0 = sdBox(p, vec3(0, 1, 1));
-    const vec2 epsilon = vec2(.001,0);
-    vec3 d1 = vec3(
-    sdBox(p-epsilon.xyy,vec3(0,1,1)),
-    sdBox(p-epsilon.yxy,vec3(0,1,1)),
-    sdBox(p-epsilon.yyx,vec3(0,1,1)));
-    return normalize(d0 - d1);
+    const float eps = 0.0001;
+    const vec2 h = vec2(eps, 0);
+    return normalize(vec3(closestObject(p+h.xyy).x-closestObject(p-h.xyy).x,
+    closestObject(p+h.yxy).x-closestObject(p-h.yxy).x,
+    closestObject(p+h.yyx).x-closestObject(p-h.yyx).x));
+}
+
+vec3 marchRay(vec3 p, vec3 rd, float distance){
+    return p + (rd*distance);
 }
 
 
-void main() {
+void main(){
+
+    mat2 r45 = rot2D(-0.785398+influences[2]);
+    vec3 mirrorNormal = vec3(1,0,0);
+    mirrorNormal.xz*r45;
+
     float distanceTraveled = 0;
     vec3 ro = vec3(uv.x, uv.y, -3);
     vec3 rd = normalize(vec3(uv, 3));
@@ -118,52 +175,47 @@ void main() {
     int stepCount = 0;
     int bounces = 0;
 
-    float col = 0;
-    float draw = 0;
+    while (stepCount < maximumSteps){
+        vec3 p = marchRay(ro, rd, distanceTraveled);
+        vec2 closest = closestObject(p);
+        distanceTraveled += closest.x;
+        if(distanceTraveled < 0){
+            color = vec3(1+pulse*2,0,1+pulse*2)/4;
+            break;
+        }
+        if (closest.x <= mininumDistance){
+            //hit
+            if (closest.y == 0 && bounces<3){
+//                color = vec3(1, 1, 1);
+                ro = p;
+                rd = reflect(rd, GetSurfaceNormal(p));
+                distanceTraveled=0.01;
+                bounces++;
 
-    bool notReflected = true;
-
-    while(stepCount < maximumSteps){
-        vec3 p = ro + (rd * distanceTraveled);
-
-        vec3 spherePos = p;
-        spherePos.x -= 1;
-        float sphere = sdSphere(spherePos,0.2);
-
-        mat2 r = rot2D(0.785398 + influences[3]);
-        p.xz *= r;
-        vec3 normal = vec3(1,0,0);
-        normal.xz*=r;
-
-        float mirror = sdBox(p, vec3(0, 1, 1));
-
-        draw = min(sphere, mirror);
-
-
-        float distance = draw;
-
-        distanceTraveled += distance;
-
-        if(distance <= mininumDistance){ // hit
-            if(draw == mirror){
-                ro = ro + rd * distanceTraveled;
-                distanceTraveled = 0;
-                rd = reflect(rd,GetSurfaceNormal(p));
-                color = vec3(0.5,0,0.5);
-                notReflected = false;
-            }else{
-                color = vec3(1,0,1);
+            }
+            if(closest.y == 1){
+                float col = (1/distanceTraveled);
+                color = vec3(col+0.2,0,0.2+col*pulse);
+                break;
+            }
+            if(closest.y == 2){
+//                float col = (1/distanceTraveled);
+                vec3 normal = GetSurfaceNormal(p);
+                color = vec3(abs(normal.x),abs(normal.y),abs(normal.z));
                 break;
             }
 
         }
-        if(distanceTraveled>=maximumDistance){
+        if (distanceTraveled >= maximumDistance){
             break;
         }
         stepCount++;
+
     }
+
     FragColor = vec4(color, 1);
 }
+
 
 //void main() {
 //    float distanceTraveled = 0.1;
