@@ -4,6 +4,7 @@
 #include "shader/ShaderManager.h"
 #include "util/mouse.hpp"
 #include "util/scene.hpp"
+#include "util/sound.h"
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -22,7 +23,7 @@ class Engine {
 	int width = 1920;
 	int height = 1080;
 	float pulse = 0.0;
-    bool countUp = false;
+	bool countUp = false;
 	const char *save_filename = "/res/settings.txt";
 	mat4 modelLeft;	 // Model matrix for a 3D object
 	mat4 projection; // Orthographic projection matrix maps a 3D scene to a
@@ -36,10 +37,11 @@ class Engine {
 
   public:
 	Engine();
-	float time = 0.00; 
+	float time = 0.00;
 	~Engine();
 	unique_ptr<ShaderManager> shaderManager;
 	unique_ptr<Mouse> mouse;
+	SystemAudioCapture sounds;
 	Scene scene;
 	Shader defaultShader;
 	const mat4 PROJECTION =
@@ -58,7 +60,7 @@ class Engine {
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;
 	vec4 influences = vec4(0.0, 0.0, 0.0, 0.0);
-    bool pulseUp = true;
+	bool pulseUp = true;
 
 	bool shouldClose();
 };

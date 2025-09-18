@@ -16,6 +16,7 @@ Engine::Engine() {
 	this->initMatrices();
 	this->initShaders();
 	this->initScene();
+	sounds.startCapture();
 }
 
 unsigned int Engine::initWindow(bool debug) {
@@ -85,18 +86,20 @@ void Engine::initScene() {
 void Engine::initMatrices() { modelLeft = mat4(1.0f); }
 
 void Engine::update() {
+
+	cout << this->sounds.getCurrentLevel() << " ";
+
 	if (pulseUp) {
 		pulse += deltaTime;
-        if(pulse>=1){
-            pulseUp = false;
-        }
+		if (pulse >= 1) {
+			pulseUp = false;
+		}
 	} else {
-		pulse-=deltaTime;
-        if(pulse<=0){
-            pulseUp = true;
-        }
+		pulse -= deltaTime;
+		if (pulse <= 0) {
+			pulseUp = true;
+		}
 	}
-
 
 	glfwPollEvents();
 	this->mouse->update();
@@ -161,6 +164,7 @@ Engine::~Engine() {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
+	sounds.stopCapture();
 }
 
 void Engine::save() {
@@ -173,5 +177,3 @@ void Engine::save() {
 	fwriter.close();
 	vwriter.close();
 }
-
-
