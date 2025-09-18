@@ -134,10 +134,10 @@ target_link_libraries(${PROJECT_NAME} glfw glm)
 target_link_libraries(${PROJECT_NAME} 
     glfw 
     glm
-    juce::juce_gui_extra
     juce::juce_audio_utils
-    juce::juce_opengl
 )
+    # juce::juce_opengl
+    # juce::juce_gui_extra
 
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE
