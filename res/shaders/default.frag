@@ -109,6 +109,7 @@ vec2 closest(vec2 obj1, vec2 obj2){
 
 vec2 closestObject(vec3 p){
     mat2 r = rot2D(-0.785398 + time/3);
+    p = twist(vec3(p.x, p.y, p.z));
 //    mat2 r45 = rot2D(-0.785398-influences[3]);
 //    mat2 r45_ = rot2D(0.785398+influences[3]);
 //
@@ -122,8 +123,9 @@ vec2 closestObject(vec3 p){
 //    vec2 box2 = vec2(sdBox(boxPos2, vec3(2, 2, 0.001)), 0);
     vec3 spherePos = p;
     spherePos.x -= influences[2];
-
     vec2 sphere = vec2(sdSphere(spherePos, influences[3]), 0);
+    spherePos.x += 2*influences[2];
+    vec2 sphere2 = vec2(sdSphere(spherePos, influences[3]), 0);
 //    return closest(box, sphere);
 
 
@@ -141,11 +143,19 @@ vec2 closestObject(vec3 p){
         float c = sdCross(r)/s;
         d = max(d,c);
     }
-    return closest(vec2(d,2),sphere);
+    return closest(vec2(d,2),closest(sphere,sphere2));
 
     return vec2(d,2);
 
 }
+
+vec2 closestObject2(vec3 p){
+    vec3 spherePos = p;
+    spherePos.x -= influences[2];
+
+    return vec2(sdSphere(spherePos, influences[3]), 2);
+}
+
 
 // https://michaelwalczyk.com/blog-ray-marching.html
 vec3 GetSurfaceNormal(vec3 p)
@@ -174,10 +184,17 @@ void main(){
     vec3 color = vec3(0);
     int stepCount = 0;
     int bounces = 0;
-
+    vec2 closest = vec2(0,0);
     while (stepCount < maximumSteps){
         vec3 p = marchRay(ro, rd, distanceTraveled);
-        vec2 closest = closestObject(p);
+
+//        if(bounces==0){
+//            closest = closestObject2(p);
+//        }else{
+//            closest = closestObject(p);
+//        }
+        closest = closestObject(p);
+
         distanceTraveled += closest.x;
         if(distanceTraveled < 0){
             color = vec3(1+pulse*2,0,1+pulse*2)/4;
