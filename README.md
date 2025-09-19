@@ -5,7 +5,6 @@ To be YouBute content soon. If you know what you're doing feel free to PR. We wo
 
 ### TODO
 - Loading screen, title screen
-- Deeper fractals
 - Set up a bunch of uniforms 22?
 - Audio input
 - Figure out how to get the funky nob thing working
@@ -13,6 +12,7 @@ To be YouBute content soon. If you know what you're doing feel free to PR. We wo
 - Lighting
 
 ### DOING
+- Deeper fractals
 
 ### DONE
 - Time uniform
