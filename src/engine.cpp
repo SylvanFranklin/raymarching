@@ -122,12 +122,12 @@ void Engine::update() {
 	ImGui::Separator();
 	ImGui::Text("Frame Rate: %.2f FPS", fps);
 	ImGui::Spacing();
-	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Terrain Parameters");
+	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Dope Parameters");
 	ImGui::Separator();
-	ImGui::SliderFloat("Rotation X", &influences[0], 0.0f, 6.5f, "%.3f");
-	ImGui::SliderFloat("Rotation Y", &influences[1], 0.0f, 6.5f, "%.3f");
-	ImGui::SliderFloat("Rotation Z", &influences[2], 0.0f, 6.5f, "%.3f");
-	ImGui::SliderFloat("X Pos", &influences[3], -5.0f, 5.0f, "%.3f");
+	ImGui::SliderFloat("Inactive1", &influences[0], 0.0f, 6.5f, "%.3f");
+	ImGui::SliderFloat("Inactive2", &influences[1], 0.0f, 6.5f, "%.3f");
+	ImGui::SliderFloat("Mirror Balls Location", &influences[2], 0.0f, 6.5f, "%.3f");
+	ImGui::SliderFloat("Mirror Balls Size", &influences[3], 0.0f, 5.0f, "%.3f");
 
 	if (ImGui::Button("SAVE")) {
 		this->save();
