@@ -43,6 +43,7 @@ void Scene::setUniforms(const glm::mat4 &model, const glm::mat4 &view,
 	this->shader.setFloat("time", time);
 	this->shader.setFloat("pulse", pulse);
 	this->shader.setInteger("clicked", clicked ? 1 : 0);
+    this->shader.setFloat("db",level);
 }
 
 unsigned int Scene::initVAO() {

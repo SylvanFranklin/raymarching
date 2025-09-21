@@ -3,6 +3,7 @@ uniform bool clicked;
 uniform float time;
 uniform vec4 influences;
 uniform float pulse;
+uniform float db;
 
 in vec2 uv;
 out vec4 FragColor;
@@ -25,7 +26,8 @@ vec2 closest(vec2 obj1, vec2 obj2){
 }
 
 vec3 twist(vec3 p) {
-    const float k = 0.6;
+    float thing = min(db/-10-3,2);
+    float k = thing;
     float c = cos(k * p.y);
     float s = sin(k * p.y);
     mat2 m = mat2(c, -s, s, c);
@@ -117,16 +119,17 @@ vec2 distanceToClosestObject(vec3 p){
 
     vec3 spherePos = p;
     spherePos.x -= influences[2];
-    vec2 sphere1 = vec2(sdSphere(spherePos, influences[3]), 0);
+    vec2 sphere1 = vec2(sdSphere(spherePos, influences[3]), 1);
     spherePos.x += 2*influences[2];
-    vec2 sphere2 = vec2(sdSphere(spherePos, influences[3]), 0);
+    vec2 sphere2 = vec2(sdSphere(spherePos, influences[3]), 1);
 
     p.zy *= r;
     p.xz *= r;
     float d = sdBox(p, vec3(1));
 
     float s = 2.0;
-    for (int m=0; m<4; m++)
+    float thing = min(db/-10-3,2);
+    for (int m=0; m<(thing); m++)
     {
         vec3 a = mod(p*s, 2.0)-1.0;
         s *= 3.0;
@@ -177,7 +180,7 @@ void main(){
             // color by distance traveled
             if (closest_object.y == 1){
                 float col = (1/distance_traveled);
-                color = vec3(col+0.2, 0, 0.2+col*pulse);
+                color = vec3(col+0.2, db/-100, 0.2+col);
                 break;
             }
             // color by normal

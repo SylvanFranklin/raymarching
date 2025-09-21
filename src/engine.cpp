@@ -7,6 +7,8 @@
 #include <iostream>
 #include <memory>
 
+extern std::atomic<float> current_dB;
+
 using glm::vec2;
 using std::endl, std::cout;
 using namespace glm;
@@ -16,7 +18,9 @@ Engine::Engine() {
 	this->initMatrices();
 	this->initShaders();
 	this->initScene();
-	this->sound.record();
+    if (!sound.start()) {
+        std::cerr << "Failed to start audio capture" << std::endl;
+    }
 }
 
 unsigned int Engine::initWindow(bool debug) {
@@ -140,13 +144,15 @@ void Engine::update() {
 	deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
 	time += deltaTime;
+
+//    std::cout << "Live dB: " << sound.getLevel() << std::endl;
 }
 
 void Engine::render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	scene.setUniforms(modelLeft, view, projection, vec2(0, 0), aspect,
-					  mouse->clicked, time, pulse, sound.level);
+					  mouse->clicked, time, pulse, sound.getLevel());
 	defaultShader.setVector4f("influences", influences);
 	defaultShader.use();
 	scene.draw();
@@ -155,6 +161,7 @@ void Engine::render() {
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 	glfwSwapBuffers(window);
+
 }
 
 bool Engine::shouldClose() { return glfwWindowShouldClose(window); }
@@ -162,6 +169,9 @@ Engine::~Engine() {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
+
+    if (audioThread.joinable())
+        audioThread.join();
 }
 
 void Engine::save() {

@@ -1,27 +1,33 @@
-#ifndef Sound_H
-#define Sound_H
+#ifndef SOUND_H
+#define SOUND_H
 
 #include <RtAudio.h>
-#include <cstdlib>
-#include <cstring>
+#include <atomic>
 #include <iostream>
-using std::cout, std::endl;
+#include <vector>
+#include <cmath>
 
 class Sound {
-  public:
-	RtAudio adc;
-	~Sound();
-	float level = 0;
-	int record();
+public:
+    Sound();
+    ~Sound();
 
-  private:
-	static int static_callback(void *outputBuffer, void *inputBuffer,
-				 unsigned int nBufferFrames, double streamTime,
-				 RtAudioStreamStatus status, void *userData);
+    bool start();        // start capturing
+    void stop();         // stop capturing
+    float getLevel() const; // thread-safe dB read
 
-	int callback(void *outputBuffer, void *inputBuffer,
-				 unsigned int nBufferFrames, double streamTime,
-				 RtAudioStreamStatus status);
+private:
+    RtAudio adc;
+    std::atomic<float> current_dB{0.0f};
+    bool running = false;
+
+    static int static_callback(void *outputBuffer, void *inputBuffer,
+                               unsigned int nBufferFrames, double streamTime,
+                               RtAudioStreamStatus status, void *userData);
+
+    int callback(void *outputBuffer, void *inputBuffer,
+                 unsigned int nBufferFrames, double streamTime,
+                 RtAudioStreamStatus status);
 };
 
-#endif // Sound_H
+#endif // SOUND_H

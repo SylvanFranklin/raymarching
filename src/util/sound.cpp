@@ -1,80 +1,81 @@
 #include "sound.hpp"
 
+Sound::Sound() {}
+
 Sound::~Sound() {
-	if (adc.isStreamRunning())
-		adc.stopStream();
+    stop();
 }
 
-int Sound::record() {
-	RtAudio adc;
+bool Sound::start() {
+    if (adc.getDeviceCount() < 1) {
+        std::cerr << "No audio devices found!" << std::endl;
+        return false;
+    }
 
-	std::vector<unsigned int> deviceIds = adc.getDeviceIds();
-	if (deviceIds.size() < 1) {
-		std::cout << "\nNo audio devices found!\n";
-		exit(0);
-	}
+    RtAudio::StreamParameters parameters;
+    parameters.deviceId = adc.getDefaultInputDevice();
+    parameters.nChannels = 1;       // mono for microphone
+    parameters.firstChannel = 0;
 
-	RtAudio::StreamParameters parameters;
-	parameters.deviceId = adc.getDefaultInputDevice();
+    unsigned int sampleRate = 44100;
+    unsigned int bufferFrames = 256;
 
-	// for (auto st : adc.getDeviceNames()) {
-	// 	cout << st << endl;
-	// }
+    try {
+        adc.openStream(nullptr, &parameters, RTAUDIO_FLOAT32, sampleRate,
+                       &bufferFrames, &Sound::static_callback, this);
+        adc.startStream();
+        running = true;
+    } catch (int &e) {
+        std::cerr << "RtAudio error: " << e << std::endl;
+        return false;
+    }
 
-	parameters.nChannels = 2;
-	parameters.firstChannel = 0;
-	unsigned int sampleRate = 44100;
-	unsigned int bufferFrames = 256; // 256 sample frames
+    return true;
+}
 
-	if (adc.openStream(NULL, &parameters, RTAUDIO_FLOAT32, sampleRate,
-					   &bufferFrames, static_callback, this)) {
-		std::cout << '\n' << adc.getErrorText() << '\n' << std::endl;
-		exit(0);
-	}
-	// Stream is open ... now start it.
-	if (adc.startStream()) {
-		std::cout << adc.getErrorText() << std::endl;
-		if (adc.isStreamOpen())
-			adc.closeStream();
-	}
+void Sound::stop() {
+    if (adc.isStreamRunning()) {
+        try {
+            adc.stopStream();
+        } catch (int &e) {
+            std::cerr << "RtAudio error stopping: " << e << std::endl;
+        }
+    }
+    if (adc.isStreamOpen()) {
+        adc.closeStream();
+    }
+    running = false;
+}
 
-	// char input;
-	// std::cout << "\nRecording ... press <enter> to quit.\n";
-	// std::cin.get(input);
-
-	// Block released ... stop the stream
-
-	return 0;
+float Sound::getLevel() const {
+    return current_dB.load();
 }
 
 int Sound::callback(void *outputBuffer, void *inputBuffer,
-					unsigned int nBufferFrames, double streamTime,
-					RtAudioStreamStatus status) {
-	if (status)
-		std::cout << "Stream overflow detected!" << std::endl;
+                    unsigned int nBufferFrames, double streamTime,
+                    RtAudioStreamStatus status) {
+    if (status)
+        std::cerr << "Stream overflow detected!" << std::endl;
 
-	// std::cout << nBufferFrames << " ";
-	// std::cout << outputBuffer << std::endl;
-	float *input = static_cast<float *>(inputBuffer);
-	double sum = 0.0;
+    float *input = static_cast<float *>(inputBuffer);
+    double sum = 0.0;
 
-	for (unsigned int i = 0; i < nBufferFrames; ++i) {
-		float sample = input[i];
-		sum += sample * sample;
-	}
+    for (unsigned int i = 0; i < nBufferFrames; ++i) {
+        float sample = input[i];
+        sum += sample * sample;
+    }
 
-	double rms = std::sqrt(sum / nBufferFrames);
-	double db = 20.0 * std::log10(rms + 1e-10);
-	cout << db << endl;
+    double rms = std::sqrt(sum / nBufferFrames);
+    double db = 20.0 * std::log10(rms + 1e-10);
+    current_dB.store(static_cast<float>(db));
 
-	return 0;
+    return 0;
 }
 
 int Sound::static_callback(void *outputBuffer, void *inputBuffer,
-						   unsigned int nBufferFrames, double streamTime,
-						   RtAudioStreamStatus status, void *userData) {
-
-	Sound *instance = static_cast<Sound *>(userData);
-	return instance->callback(outputBuffer, inputBuffer, nBufferFrames,
-							  streamTime, status);
+                           unsigned int nBufferFrames, double streamTime,
+                           RtAudioStreamStatus status, void *userData) {
+    Sound *instance = static_cast<Sound *>(userData);
+    return instance->callback(outputBuffer, inputBuffer, nBufferFrames,
+                              streamTime, status);
 }
