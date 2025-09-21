@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15) # JUCE requires at least 3.15
+cmake_minimum_required(VERSION 3.15) 
 project(Ray_Marcher)
 set(CMAKE_CXX_STANDARD 17)
 
@@ -6,25 +6,32 @@ set(CMAKE_CXX_STANDARD 17)
 # Set versions of dependencies
 set(GLFW_VERSION 3.3.9)
 set(GLM_VERSION 1.0.1)
-set(JUCE_VERSION 7.0.9) # Latest stable version
+set(RTAUDIO_VERSION 6.0.1)
 
 # Do not build other non-important things
 option(GLFW_BUILD_DOCS ON)
 option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS ON)
 
+# RtAudio configuration options
+set(RTAUDIO_BUILD_TESTING OFF CACHE BOOL "Build RtAudio tests" FORCE)
+set(RTAUDIO_BUILD_PYTHON OFF CACHE BOOL "Build PyRtAudio python bindings" FORCE)
+set(RTAUDIO_TARGETNAME_UNINSTALL "rtaudio_uninstall" CACHE STRING "Name of RtAudio uninstall build target" FORCE)
+
+# Platform-specific RtAudio API options
+if(APPLE)
+    option(RTAUDIO_API_CORE "Build CoreAudio API" ON)
+elseif(WIN32)
+    option(RTAUDIO_API_WASAPI "Build WASAPI API" ON)
+    option(RTAUDIO_API_DS "Build DirectSound API" ON)
+elseif(UNIX)
+    option(RTAUDIO_API_ALSA "Build ALSA API" ON)
+    option(RTAUDIO_API_PULSE "Build PulseAudio API" ON)
+endif()
+
 ## ~ FETCH DEPENDENCIES ~
 # Include FetchContent
 include(FetchContent)
-
-# Fetch JUCE
-FetchContent_Declare(
-    JUCE
-    GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-    GIT_TAG ${JUCE_VERSION}
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-)
-FetchContent_MakeAvailable(JUCE)
 
 # Fetch GLFW
 FetchContent_Declare(
@@ -41,6 +48,14 @@ FetchContent_Declare(
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(glm)
+
+# Fetch RtAudio
+FetchContent_Declare(
+    rtaudio
+    URL https://github.com/thestk/rtaudio/archive/refs/tags/${RTAUDIO_VERSION}.tar.gz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(rtaudio)
 
 # Fetch GLAD
 FetchContent_Declare(
@@ -93,54 +108,15 @@ add_definitions(-DGLFW_INCLUDE_NONE
 
 ## ~ BUILD PROJECTS ~
 
-# Option 1: Build your existing OpenGL/GLFW ray marcher
+# Build your OpenGL/GLFW ray marcher with audio support
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${VENDORS_SOURCES})
 
-# Include libraries for ray marcher
-target_link_libraries(${PROJECT_NAME} glfw glm)
-
-# Option 2: Create a JUCE audio app (separate target)
-# juce_add_gui_app(Ray_Marcher_Audio
-#     PRODUCT_NAME "Ray Marcher Audio"
-#     COMPANY_NAME "YourCompany"
-#     VERSION "1.0.0"
-# )
-#
-# # Configure JUCE modules for audio app
-# target_compile_definitions(Ray_Marcher_Audio
-#     PRIVATE
-#         JUCE_WEB_BROWSER=0
-#         JUCE_USE_CURL=0
-#         JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:Ray_Marcher_Audio,JUCE_PRODUCT_NAME>"
-#         JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:Ray_Marcher_Audio,JUCE_VERSION>"
-# )
-#
-# # Link JUCE modules to audio app
-# target_link_libraries(Ray_Marcher_Audio
-#     PRIVATE
-#         juce::juce_gui_extra
-#         juce::juce_audio_utils
-#         juce::juce_opengl  # For OpenGL integration with JUCE
-#     PUBLIC
-#         juce::juce_recommended_config_flags
-#         juce::juce_recommended_lto_flags
-#         juce::juce_recommended_warning_flags
-# )
-
-# Option 3: Hybrid approach - integrate JUCE into your existing app
-# Uncomment these lines if you want to add JUCE to your main executable instead
+# Link libraries - order matters for some linkers
 target_link_libraries(${PROJECT_NAME} 
     glfw 
     glm
-    # juce::juce_audio_utils
+    rtaudio
+    ${GLAD_LIBRARIES}
 )
-    # juce::juce_opengl
-    # juce::juce_gui_extra
-
-# target_compile_definitions(${PROJECT_NAME}
-#     PRIVATE
-#         JUCE_WEB_BROWSER=0
-#         JUCE_USE_CURL=0
-# )

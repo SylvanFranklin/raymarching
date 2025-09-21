@@ -13,7 +13,7 @@
 // }
 //
 //
-#include "vendor/rtaudio/RtAudio.h"
+#include <RtAudio.h>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -29,7 +29,8 @@ int record(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
 }
 
 int main() {
-	RtAudio adc;
+	RtAudio adc = RtAudio(RtAudio::MACOSX_CORE);
+
 	std::vector<unsigned int> deviceIds = adc.getDeviceIds();
 	if (deviceIds.size() < 1) {
 		std::cout << "\nNo audio devices found!\n";
