@@ -4,6 +4,7 @@
 #include "shader/ShaderManager.h"
 #include "util/mouse.hpp"
 #include "util/scene.hpp"
+#include "util/sound.hpp"
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -41,6 +42,7 @@ class Engine {
 	unique_ptr<ShaderManager> shaderManager;
 	unique_ptr<Mouse> mouse;
 	Scene scene;
+	Sound sound;
 	Shader defaultShader;
 	const mat4 PROJECTION =
 		ortho(0.0f, static_cast<float>(this->width), 0.0f,

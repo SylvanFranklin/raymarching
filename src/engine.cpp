@@ -16,6 +16,7 @@ Engine::Engine() {
 	this->initMatrices();
 	this->initShaders();
 	this->initScene();
+	this->sound.record();
 }
 
 unsigned int Engine::initWindow(bool debug) {
@@ -145,7 +146,7 @@ void Engine::render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	scene.setUniforms(modelLeft, view, projection, vec2(0, 0), aspect,
-					  mouse->clicked, time, pulse);
+					  mouse->clicked, time, pulse, sound.level);
 	defaultShader.setVector4f("influences", influences);
 	defaultShader.use();
 	scene.draw();
