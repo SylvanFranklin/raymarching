@@ -1,4 +1,3 @@
 build
-src/vendor/
 .cache/clangd/index
 .DS_Store

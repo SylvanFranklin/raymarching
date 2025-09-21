@@ -1,7 +1,6 @@
 #include "engine.hpp"
 #include "juce_audio_devices/juce_audio_devices.h"
 
-
 int main(int argc, char *argv[]) {
 
 	juce::AudioDeviceManager audio = juce::AudioDeviceManager();
