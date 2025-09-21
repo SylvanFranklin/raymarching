@@ -16,7 +16,6 @@ Engine::Engine() {
 	this->initMatrices();
 	this->initShaders();
 	this->initScene();
-	sounds.startCapture();
 }
 
 unsigned int Engine::initWindow(bool debug) {
@@ -86,9 +85,6 @@ void Engine::initScene() {
 void Engine::initMatrices() { modelLeft = mat4(1.0f); }
 
 void Engine::update() {
-
-	cout << this->sounds.getCurrentLevel() << " ";
-
 	if (pulseUp) {
 		pulse += deltaTime;
 		if (pulse >= 1) {
@@ -126,7 +122,8 @@ void Engine::update() {
 	ImGui::Separator();
 	ImGui::SliderFloat("Inactive1", &influences[0], 0.0f, 6.5f, "%.3f");
 	ImGui::SliderFloat("Inactive2", &influences[1], 0.0f, 6.5f, "%.3f");
-	ImGui::SliderFloat("Mirror Balls Location", &influences[2], 0.0f, 6.5f, "%.3f");
+	ImGui::SliderFloat("Mirror Balls Location", &influences[2], 0.0f, 6.5f,
+					   "%.3f");
 	ImGui::SliderFloat("Mirror Balls Size", &influences[3], 0.0f, 5.0f, "%.3f");
 
 	if (ImGui::Button("SAVE")) {
@@ -164,7 +161,6 @@ Engine::~Engine() {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
-	sounds.stopCapture();
 }
 
 void Engine::save() {
