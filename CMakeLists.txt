@@ -12,6 +12,7 @@ set(RTAUDIO_VERSION 6.0.1)
 option(GLFW_BUILD_DOCS ON)
 option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS ON)
+option(GLFW_USE_WAYLAND OFF)
 
 # RtAudio configuration options
 set(RTAUDIO_BUILD_TESTING OFF CACHE BOOL "Build RtAudio tests" FORCE)
@@ -120,3 +121,12 @@ target_link_libraries(${PROJECT_NAME}
     rtaudio
     ${GLAD_LIBRARIES}
 )
+
+if (GLFW_USE_WAYLAND)
+    find_package(OpenGL REQUIRED COMPONENTS EGL)
+    target_link_libraries(${PROJECT_NAME}
+        xkbcommon
+        OpenGL::EGL
+        )
+endif ()
+
