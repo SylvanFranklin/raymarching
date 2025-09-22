@@ -18,9 +18,9 @@ Engine::Engine() {
 	this->initMatrices();
 	this->initShaders();
 	this->initScene();
-    if (!sound.start()) {
-        std::cerr << "Failed to start audio capture" << std::endl;
-    }
+	if (!sound.start()) {
+		std::cerr << "Failed to start audio capture" << std::endl;
+	}
 }
 
 unsigned int Engine::initWindow(bool debug) {
@@ -145,7 +145,7 @@ void Engine::update() {
 	lastFrame = currentFrame;
 	time += deltaTime;
 
-//    std::cout << "Live dB: " << sound.getLevel() << std::endl;
+	//    std::cout << "Live dB: " << sound.getLevel() << std::endl;
 }
 
 void Engine::render() {
@@ -161,7 +161,6 @@ void Engine::render() {
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 	glfwSwapBuffers(window);
-
 }
 
 bool Engine::shouldClose() { return glfwWindowShouldClose(window); }
@@ -170,8 +169,8 @@ Engine::~Engine() {
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 
-    if (audioThread.joinable())
-        audioThread.join();
+	if (audioThread.joinable())
+		audioThread.join();
 }
 
 void Engine::save() {

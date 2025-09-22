@@ -9,10 +9,8 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <memory>
-#include <vector>
 #include <thread>
-
-
+#include <vector>
 
 using std::vector, std::unique_ptr, std::make_unique, glm::mat4, glm::ortho,
 	glm::vec4, glm::vec3, glm::vec2;
@@ -37,8 +35,8 @@ class Engine {
 	// @brief Macro for glCheckError_ function. Used for debugging.
 	// #define glCheckError() glCheckError_(__FILE__, __LINE__)
 
-    std::thread audioThread;
-    std::atomic<bool> running{true};
+	std::thread audioThread;
+	std::atomic<bool> running{true};
 
   public:
 	Engine();
