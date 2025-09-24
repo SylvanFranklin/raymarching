@@ -9,7 +9,8 @@
 
 class Uniform {
   public:
-	unsigned int ID;
+	unsigned int ID{};
+
 	Uniform() {}
 	Uniform &use();
 	// compiles and links the UNIFORMs up
