@@ -10,6 +10,7 @@ class ShaderManager {
 	std::string vertexCode;
 	std::string fragmentCode;
 	std::string geometryCode;
+
 	/// @brief Default constructor
 	ShaderManager() = default;
 	/// @brief Default destructor

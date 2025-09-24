@@ -4,14 +4,15 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <iostream>
-using std::string, std::ifstream, std::stringstream, std::cout, std::endl, std::tuple;
+
+#include <string>
 
 class Shader {
   public:
-	unsigned int ID;
-	const char *vertexSource;
-	const char *fragmentSource;
+	unsigned int ID{};
+	const char *vertexSource{};
+	const char *fragmentSource{};
+
 	Shader() {}
 	Shader &use();
 	// compiles and links the shaders up
@@ -81,7 +82,7 @@ class Shader {
 	/// @param type the type of shader object (vertex, fragment, geometry)
 	void checkCompileErrors(unsigned int object, std::string type);
 
-	string dumpConfig();
+    std::string dumpConfig();
 };
 
 #endif
