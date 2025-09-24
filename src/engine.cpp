@@ -7,12 +7,6 @@
 #include <iostream>
 #include <memory>
 
-extern std::atomic<float> current_dB;
-
-using glm::vec2;
-using std::endl, std::cout;
-using namespace glm;
-
 Engine::Engine() {
 	this->initWindow();
 	this->initMatrices();
@@ -50,9 +44,9 @@ unsigned int Engine::initWindow(bool debug) {
 	//	glfwSetWindowOpacity(window, 1.0f);
 	//	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); //disables
 	// the cursor
-	this->mouse = make_unique<Mouse>(window);
+	this->mouse = std::make_unique<Mouse>(window);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		cout << "Failed to initialize GLAD" << endl;
+        std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
 
@@ -72,7 +66,7 @@ unsigned int Engine::initWindow(bool debug) {
 }
 
 void Engine::initShaders() {
-	shaderManager = make_unique<ShaderManager>();
+	shaderManager = std::make_unique<ShaderManager>();
 	defaultShader = this->shaderManager->loadShader(
 		"../res/shaders/default.vert", "../res/shaders/default.frag", nullptr,
 		"default");
@@ -87,7 +81,7 @@ void Engine::initScene() {
 	scene.initVBO();
 }
 
-void Engine::initMatrices() { modelLeft = mat4(1.0f); }
+void Engine::initMatrices() { modelLeft = glm::mat4(1.0f); }
 
 void Engine::update() {
 	if (pulseUp) {
@@ -151,7 +145,7 @@ void Engine::update() {
 void Engine::render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	scene.setUniforms(modelLeft, view, projection, vec2(0, 0), aspect,
+	scene.setUniforms(modelLeft, view, projection, glm::vec2(0, 0), aspect,
 					  mouse->clicked, time, pulse, sound.getLevel());
 	defaultShader.setVector4f("influences", influences);
 	defaultShader.use();
@@ -174,7 +168,7 @@ Engine::~Engine() {
 }
 
 void Engine::save() {
-	cout << "saved" << endl;
+    std::cout << "saved" << std::endl;
 	std::ofstream fwriter("../saves/this.frag");
 	std::ofstream vwriter("../saves/this.vert");
 	std::ofstream uwriter("../saves/uniforms.text");
