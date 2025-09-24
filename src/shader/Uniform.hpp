@@ -4,9 +4,8 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <iostream>
-using std::string, std::ifstream, std::stringstream, std::cout, std::endl,
-	std::tuple;
+
+#include <string>
 
 class Uniform {
   public:
@@ -80,7 +79,7 @@ class Uniform {
 	/// @param type the type of UNIFORM object (vertex, fragment, geometry)
 	void checkCompileErrors(unsigned int object, std::string type);
 
-	string dumpConfig();
+    std::string dumpConfig();
 };
 
 #endif

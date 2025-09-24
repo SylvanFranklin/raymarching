@@ -7,14 +7,12 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-using std::vector;
-
 class Scene {
   private:
 	unsigned int VBO;
 	unsigned int VAO;
-	vector<unsigned int> indices;
-	vector<float> vertices;
+    std::vector<unsigned int> indices;
+    std::vector<float> vertices;
 
   public:
 	void setShader(Shader &shader);

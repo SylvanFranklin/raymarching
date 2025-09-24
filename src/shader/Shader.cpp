@@ -1,5 +1,7 @@
 #include "Shader.hpp"
 
+#include <iostream>
+
 Shader &Shader::use() {
 	glUseProgram(this->ID);
 	return *this;
@@ -83,10 +85,11 @@ void Shader::setMatrix4(const char *name, const glm::mat4 &matrix) const {
 					   glm::value_ptr(matrix));
 }
 
-void Shader::checkCompileErrors(unsigned int object, string type) {
+void Shader::checkCompileErrors(unsigned int object, std::string type) {
 	int success;
 	char infoLog[1024];
 
+    using std::cout, std::endl;
 	if (type != "PROGRAM") {
 		glGetShaderiv(object, GL_COMPILE_STATUS, &success);
 		if (!success) {
@@ -112,8 +115,8 @@ void Shader::checkCompileErrors(unsigned int object, string type) {
 	}
 }
 
-string Shader::dumpConfig() {
-	string format = "";
+std::string Shader::dumpConfig() {
+    std::string format = "";
 
 	return "";
 }
