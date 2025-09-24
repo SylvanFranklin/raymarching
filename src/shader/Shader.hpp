@@ -9,9 +9,10 @@
 
 class Shader {
   public:
-	unsigned int ID;
-	const char *vertexSource;
-	const char *fragmentSource;
+	unsigned int ID{};
+	const char *vertexSource{};
+	const char *fragmentSource{};
+
 	Shader() {}
 	Shader &use();
 	// compiles and links the shaders up

@@ -9,8 +9,8 @@
 
 class Scene {
   private:
-	unsigned int VBO;
-	unsigned int VAO;
+	unsigned int VBO{};
+	unsigned int VAO{};
     std::vector<unsigned int> indices;
     std::vector<float> vertices;
 

@@ -16,15 +16,15 @@ class Engine {
 	GLFWwindow *window{};
 	bool allowMove = true;
 	float time_since_last_move = 999.0;
-	float aspect;
+	float aspect = 0.0;
 	int width = 1920;
 	int height = 1080;
 	float pulse = 0.0;
 	bool countUp = false;
 	const char *save_filename = "/res/settings.txt";
-    glm::mat4 modelLeft;	 // Model matrix for a 3D object
-	glm::mat4 projection; // Orthographic projection matrix maps a 3D scene to a
-	glm::mat4 view;		 // The camera's position and orientation in the world
+	glm::mat4 modelLeft{};	 // Model matrix for a 3D object
+	glm::mat4 projection{}; // Orthographic projection matrix maps a 3D scene to a
+	glm::mat4 view{};		 // The camera's position and orientation in the world
 
 	// @note Call glCheckError() after every OpenGL call to check for errors.
 	//   GLenum glCheckError_(const char *file, int line);
@@ -37,8 +37,9 @@ class Engine {
 
   public:
 	Engine();
-	float time = 0.00;
 	~Engine();
+
+	float time = 0.00;
     std::unique_ptr<ShaderManager> shaderManager;
 	std::unique_ptr<Mouse> mouse;
 	Scene scene;
@@ -57,6 +58,7 @@ class Engine {
 	void draw();
 	void update();
 	void render();
+
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;
 	glm::vec4 influences{0.0, 0.0, 0.0, 0.0};

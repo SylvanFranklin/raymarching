@@ -16,7 +16,7 @@ class Mouse {
 	glm::vec2 get_delta();
 
   private:
-	double lastX, lastY;
+	double lastX{}, lastY{};
 	bool firstMove = true;
 	GLFWwindow *window;
 };
