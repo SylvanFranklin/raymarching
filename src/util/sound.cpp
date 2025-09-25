@@ -47,25 +47,57 @@ void Sound::stop() {
 
 float Sound::getLevel() const { return current_dB.load(); }
 
+Sound::DataBufferNode *Sound::extractDataBufferList() {
+    // the following is a stack "extraction" operation for external use
+    // leaves current stack head as nullptr, ready to be filled with data again
+    DataBufferNode *oldList = dataBufferList.load(std::memory_order_relaxed);
+
+    while (oldList != nullptr && !dataBufferList.compare_exchange_weak(
+        oldList, nullptr, std::memory_order_acquire,
+        std::memory_order_relaxed)) {
+    }
+
+    return oldList;
+}
+
 int Sound::callback(void *outputBuffer, void *inputBuffer,
 					unsigned int nBufferFrames, double streamTime,
 					RtAudioStreamStatus status) {
 	if (status)
 		std::cerr << "Stream overflow detected!" << std::endl;
 
-	float *input = static_cast<float *>(inputBuffer);
-	double sum = 0.0;
+  float *input = static_cast<float *>(inputBuffer);
 
-	for (unsigned int i = 0; i < nBufferFrames; ++i) {
-		float sample = input[i];
-		sum += sample * sample;
-	}
+  // first alloc for Node
+  auto *bufferNode = new DataBufferNode{
+      /*next=*/nullptr,
+      /*payload=*/std::vector<float>(),
+  };
+  // another alloc for a vector of nBufferFrames
+  bufferNode->payload.assign(input, input + nBufferFrames);
+  // could be reduced to a single alloc, but would introduce funny type erasure
 
-	double rms = std::sqrt(sum / nBufferFrames);
-	double db = 20.0 * std::log10(rms + 1e-10);
-	current_dB.store(static_cast<float>(db));
+  // following is a lock-free stack push impl
+  bufferNode->next = dataBufferList.load(std::memory_order_relaxed);
+  while (!dataBufferList.compare_exchange_weak(bufferNode->next, bufferNode,
+                                               std::memory_order_release,
+                                               std::memory_order_relaxed)) {
+  }
 
-	return 0;
+  // not touching what's below, but following processing could be brought into
+  // the main thread too
+  double sum = 0.0;
+
+  for (unsigned int i = 0; i < nBufferFrames; ++i) {
+    float sample = input[i];
+    sum += sample * sample;
+  }
+
+  double rms = std::sqrt(sum / nBufferFrames);
+  double db = 20.0 * std::log10(rms + 1e-10);
+  current_dB.store(static_cast<float>(db));
+
+  return 0;
 }
 
 int Sound::static_callback(void *outputBuffer, void *inputBuffer,
@@ -74,4 +106,11 @@ int Sound::static_callback(void *outputBuffer, void *inputBuffer,
 	Sound *instance = static_cast<Sound *>(userData);
 	return instance->callback(outputBuffer, inputBuffer, nBufferFrames,
 							  streamTime, status);
+}
+
+void Sound::DataBufferNode::destroy() {
+  if (next != nullptr) {
+    next->destroy();
+  }
+  delete this;
 }
