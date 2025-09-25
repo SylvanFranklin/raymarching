@@ -103,8 +103,16 @@ void Engine::update() {
 		this->influences[1] -= this->mouse->deltaX;
 	}
 
+    // data model for sound visualization
+    std::vector<float> currentSoundBuffer;
+
     // sound processing
     if (auto* soundBufferList = sound.extractDataBufferList()) {
+        // would process only "head" of the stack, since it is the most relevant
+        // other sound frames could be processed too
+        // since we are moving, no extra allocations would occur
+        currentSoundBuffer = std::move(soundBufferList->payload);
+
         soundBufferList->destroy();
     }
 
@@ -133,6 +141,20 @@ void Engine::update() {
 	if (ImGui::Button("SAVE")) {
 		this->save();
 	}
+
+    ImGui::Checkbox("AUDIO DEBUG VIEW", &audioDebugComponent.isShown);
+    if (audioDebugComponent.isShown) {
+        ImGui::PlotLines(
+            "waveform",
+            currentSoundBuffer.data(),
+            static_cast<int>(currentSoundBuffer.size()),
+            0,
+            nullptr,
+            0, audioDebugComponent.scale,
+            ImVec2(0, 100)
+        );
+        ImGui::SliderFloat("scale", &audioDebugComponent.scale, 0.0f, 1.0f);
+    }
 
 	ImGui::Spacing();
 	ImGui::PopStyleColor();
