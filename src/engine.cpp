@@ -109,6 +109,11 @@ void Engine::update() {
 		this->influences[1] -= this->mouse->deltaX;
 	}
 
+    // sound processing
+    if (auto* soundBufferList = sound.extractDataBufferList()) {
+        soundBufferList->destroy();
+    }
+
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 
