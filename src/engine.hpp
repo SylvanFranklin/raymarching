@@ -65,6 +65,11 @@ class Engine {
 	vec4 influences = vec4(0.0, 0.0, 0.0, 0.0);
 	bool pulseUp = true;
 
+    struct AudioDebugComponent {
+        float scale = 1.0f;
+        bool isShown = false;
+    } audioDebugComponent;
+
 	bool shouldClose();
 };
 
