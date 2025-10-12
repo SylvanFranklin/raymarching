@@ -24,7 +24,6 @@ class Sound {
 
   bool start();            // start capturing
   void stop();             // stop capturing
-  float getLevel() const;  // thread-safe dB read
 
   // don't forget to call DataBufferNode::destroy() after processing
   DataBufferNode *extractDataBufferList();
@@ -41,7 +40,6 @@ class Sound {
  private:
   RtAudio adc;
   std::atomic<DataBufferNode *> dataBufferList{nullptr};
-  std::atomic<float> current_dB{0.0f};
   bool running = false;
 };
 

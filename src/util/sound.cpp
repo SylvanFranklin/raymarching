@@ -44,8 +44,6 @@ void Sound::stop() {
   running = false;
 }
 
-float Sound::getLevel() const { return current_dB.load(); }
-
 Sound::DataBufferNode *Sound::extractDataBufferList() {
   // the following is a stack "extraction" operation for external use
   // leaves current stack head as nullptr, ready to be filled with data again
@@ -78,19 +76,6 @@ int Sound::callback(void *outputBuffer, void *inputBuffer, unsigned int nBufferF
   while (!dataBufferList.compare_exchange_weak(bufferNode->next, bufferNode, std::memory_order_release,
                                                std::memory_order_relaxed)) {
   }
-
-  // not touching what's below, but following processing could be brought into
-  // the main thread too
-  double sum = 0.0;
-
-  for (unsigned int i = 0; i < nBufferFrames; ++i) {
-    float sample = input[i];
-    sum += sample * sample;
-  }
-
-  double rms = std::sqrt(sum / nBufferFrames);
-  double db = 20.0 * std::log10(rms + 1e-10);
-  current_dB.store(static_cast<float>(db));
 
   return 0;
 }

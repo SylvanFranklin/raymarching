@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <numeric>
 
 #include "util/scene.hpp"
 #include "vendor/imgui/imgui.h"
@@ -104,17 +105,45 @@ void Engine::update() {
     this->influences[1] -= this->mouse->deltaX;
   }
 
-  // data model for sound visualization
-  std::vector<float> currentSoundBuffer;
-
   // sound processing
   if (auto *soundBufferList = sound->extractDataBufferList()) {
-    // would process only "head" of the stack, since it is the most relevant
-    // other sound frames could be processed too
-    // since we are moving, no extra allocations would occur
-    currentSoundBuffer = std::move(soundBufferList->payload);
+    constexpr auto reverse = [](Sound::DataBufferNode *head) {
+      Sound::DataBufferNode *prev = nullptr;
+      Sound::DataBufferNode *node = head;
+      while (node != nullptr) {
+        auto *next = node->next;
+        node->next = prev;
+        prev = node;
+        node = next;
+      }
+      return prev;
+    };
 
+    constexpr auto forEach = [](Sound::DataBufferNode *node, auto f) {
+      while (node != nullptr) {
+        auto *next = node->next;
+        f(*node);
+        node = next;
+      }
+    };
+
+    audioState.buffer.clear();
+    forEach(reverse(soundBufferList), [&](Sound::DataBufferNode &node) {
+      if (audioState.buffer.empty()) {
+        audioState.buffer = std::move(node.payload);
+      } else {
+        audioState.buffer.insert(audioState.buffer.end(), node.payload.begin(), node.payload.end());
+      }
+    });
     soundBufferList->destroy();
+
+    if (!audioState.buffer.empty()) {
+      const float audioBufferSum = std::accumulate(audioState.buffer.begin(), audioState.buffer.end(), 0.f,
+                                                   [](float acc, float x) { return acc + (x * x); });
+      const float rms = std::sqrt(audioBufferSum / audioState.buffer.size());
+      const float db = 20.0 * std::log10(rms + 1e-10f);
+      audioState.level = db;
+    }
   }
 
   ImGui_ImplOpenGL3_NewFrame();
@@ -144,7 +173,7 @@ void Engine::update() {
 
   ImGui::Checkbox("AUDIO DEBUG VIEW", &audioDebugComponent.isShown);
   if (audioDebugComponent.isShown) {
-    ImGui::PlotLines("waveform", currentSoundBuffer.data(), static_cast<int>(currentSoundBuffer.size()), 0, nullptr, 0,
+    ImGui::PlotLines("waveform", audioState.buffer.data(), static_cast<int>(audioState.buffer.size()), 0, nullptr, 0,
                      audioDebugComponent.scale, ImVec2(0, 100));
     ImGui::SliderFloat("scale", &audioDebugComponent.scale, 0.0f, 1.0f);
   }
@@ -166,7 +195,7 @@ void Engine::render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   scene.setUniforms(modelLeft, view, projection, glm::vec2(0, 0), aspect, mouse->clicked, time, pulse,
-                    sound->getLevel());
+                    audioState.level);
   defaultShader.setVector4f("influences", influences);
   defaultShader.use();
   scene.draw();
