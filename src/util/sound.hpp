@@ -5,7 +5,7 @@
 
 #include <atomic>
 #include <cmath>
-#include <iostream>
+#include <memory>
 #include <vector>
 
 class Sound {
@@ -19,7 +19,7 @@ class Sound {
   };
 
  public:
-  Sound();
+  static std::unique_ptr<Sound> create();
   ~Sound();
 
   bool start();            // start capturing
@@ -30,6 +30,8 @@ class Sound {
   DataBufferNode *extractDataBufferList();
 
  private:
+  Sound() = default;
+
   static int static_callback(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime,
                              RtAudioStreamStatus status, void *userData);
 
