@@ -9,12 +9,12 @@
 #include "vendor/imgui/imgui_impl_glfw.h"
 #include "vendor/imgui/imgui_impl_opengl3.h"
 
-Engine::Engine() {
+Engine::Engine() : sound{Sound::create()} {
   this->initWindow();
   this->initMatrices();
   this->initShaders();
   this->initScene();
-  if (!sound.start()) {
+  if (!sound->start()) {
     std::cerr << "Failed to start audio capture" << std::endl;
   }
 }
@@ -108,7 +108,7 @@ void Engine::update() {
   std::vector<float> currentSoundBuffer;
 
   // sound processing
-  if (auto *soundBufferList = sound.extractDataBufferList()) {
+  if (auto *soundBufferList = sound->extractDataBufferList()) {
     // would process only "head" of the stack, since it is the most relevant
     // other sound frames could be processed too
     // since we are moving, no extra allocations would occur
@@ -159,14 +159,14 @@ void Engine::update() {
   lastFrame = currentFrame;
   time += deltaTime;
 
-  //    std::cout << "Live dB: " << sound.getLevel() << std::endl;
+  //    std::cout << "Live dB: " << sound->getLevel() << std::endl;
 }
 
 void Engine::render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   scene.setUniforms(modelLeft, view, projection, glm::vec2(0, 0), aspect, mouse->clicked, time, pulse,
-                    sound.getLevel());
+                    sound->getLevel());
   defaultShader.setVector4f("influences", influences);
   defaultShader.use();
   scene.draw();

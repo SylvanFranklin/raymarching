@@ -1,6 +1,6 @@
 #include "sound.hpp"
 
-Sound::Sound() {}
+std::unique_ptr<Sound> Sound::create() { return std::unique_ptr<Sound>{new Sound}; }
 
 Sound::~Sound() { stop(); }
 

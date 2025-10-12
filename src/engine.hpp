@@ -45,7 +45,7 @@ class Engine {
   std::unique_ptr<ShaderManager> shaderManager;
   std::unique_ptr<Mouse> mouse;
   Scene scene;
-  Sound sound;
+  std::unique_ptr<Sound> sound;
   Shader defaultShader;
   const glm::mat4 PROJECTION =
       glm::ortho(0.0f, static_cast<float>(this->width), 0.0f, static_cast<float>(this->height), -1.0f, 1.0f);
