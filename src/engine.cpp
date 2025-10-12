@@ -1,206 +1,198 @@
 #include "engine.hpp"
-#include "util/scene.hpp"
-#include "vendor/imgui/imgui.h"
-#include "vendor/imgui/imgui_impl_glfw.h"
-#include "vendor/imgui/imgui_impl_opengl3.h"
+
 #include <fstream>
 #include <iostream>
 #include <memory>
 
+#include "util/scene.hpp"
+#include "vendor/imgui/imgui.h"
+#include "vendor/imgui/imgui_impl_glfw.h"
+#include "vendor/imgui/imgui_impl_opengl3.h"
+
 Engine::Engine() {
-	this->initWindow();
-	this->initMatrices();
-	this->initShaders();
-	this->initScene();
-	if (!sound.start()) {
-		std::cerr << "Failed to start audio capture" << std::endl;
-	}
+  this->initWindow();
+  this->initMatrices();
+  this->initShaders();
+  this->initScene();
+  if (!sound.start()) {
+    std::cerr << "Failed to start audio capture" << std::endl;
+  }
 }
 
 unsigned int Engine::initWindow(bool debug) {
-	// glfw: initialize and configure
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_SCALE_TO_MONITOR, true);
+  // glfw: initialize and configure
+  glfwInit();
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_SCALE_TO_MONITOR, true);
 #ifdef __APPLE__
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
-	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
+  glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 #endif
-	glfwWindowHint(GLFW_RESIZABLE, false);
+  glfwWindowHint(GLFW_RESIZABLE, false);
 
-	GLFWmonitor *primaryMonitor = glfwGetPrimaryMonitor();
-	const GLFWvidmode *mode = glfwGetVideoMode(primaryMonitor);
-	this->width = mode->width;
-	this->height = mode->height;
-	this->aspect = (float)width / (float)height;
-	window = glfwCreateWindow(width, height, "Raymarcher", nullptr, nullptr);
-	glfwMakeContextCurrent(window);
+  GLFWmonitor *primaryMonitor = glfwGetPrimaryMonitor();
+  const GLFWvidmode *mode = glfwGetVideoMode(primaryMonitor);
+  this->width = mode->width;
+  this->height = mode->height;
+  this->aspect = (float)width / (float)height;
+  window = glfwCreateWindow(width, height, "Raymarcher", nullptr, nullptr);
+  glfwMakeContextCurrent(window);
 
-	//	glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
-	//	glfwSetWindowOpacity(window, 1.0f);
-	//	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); //disables
-	// the cursor
-	this->mouse = std::make_unique<Mouse>(window);
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-		return -1;
-	}
+  //	glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+  //	glfwSetWindowOpacity(window, 1.0f);
+  //	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); //disables
+  // the cursor
+  this->mouse = std::make_unique<Mouse>(window);
+  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    std::cout << "Failed to initialize GLAD" << std::endl;
+    return -1;
+  }
 
-	glViewport(0, 0, mode->width, mode->height);
-	glEnable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glfwSwapInterval(1);
+  glViewport(0, 0, mode->width, mode->height);
+  glEnable(GL_BLEND);
+  glEnable(GL_DEPTH_TEST);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glfwSwapInterval(1);
 
-	// Setup Dear ImGui context
-	ImGui::CreateContext();
-	ImGuiIO &io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init();
-	return 0;
+  // Setup Dear ImGui context
+  ImGui::CreateContext();
+  ImGuiIO &io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  ImGui_ImplOpenGL3_Init();
+  return 0;
 }
 
 void Engine::initShaders() {
-	shaderManager = std::make_unique<ShaderManager>();
-	defaultShader = this->shaderManager->loadShader(
-		"../res/shaders/default.vert", "../res/shaders/default.frag", nullptr,
-		"default");
-	//	defaultShader.use();
-	defaultShader.setMatrix4("projection", this->PROJECTION);
+  shaderManager = std::make_unique<ShaderManager>();
+  defaultShader =
+      this->shaderManager->loadShader("../res/shaders/default.vert", "../res/shaders/default.frag", nullptr, "default");
+  //	defaultShader.use();
+  defaultShader.setMatrix4("projection", this->PROJECTION);
 }
 
 void Engine::initScene() {
-	this->scene = Scene();
-	scene.setShader(defaultShader);
-	scene.initVAO();
-	scene.initVBO();
+  this->scene = Scene();
+  scene.setShader(defaultShader);
+  scene.initVAO();
+  scene.initVBO();
 }
 
 void Engine::initMatrices() { modelLeft = glm::mat4(1.0f); }
 
 void Engine::update() {
-	if (pulseUp) {
-		pulse += deltaTime;
-		if (pulse >= 1) {
-			pulseUp = false;
-		}
-	} else {
-		pulse -= deltaTime;
-		if (pulse <= 0) {
-			pulseUp = true;
-		}
-	}
-
-	glfwPollEvents();
-	this->mouse->update();
-	if (!mouse->clicked) {
-		this->influences[0] += this->mouse->deltaY;
-		this->influences[1] -= this->mouse->deltaX;
-	}
-
-    // data model for sound visualization
-    std::vector<float> currentSoundBuffer;
-
-    // sound processing
-    if (auto* soundBufferList = sound.extractDataBufferList()) {
-        // would process only "head" of the stack, since it is the most relevant
-        // other sound frames could be processed too
-        // since we are moving, no extra allocations would occur
-        currentSoundBuffer = std::move(soundBufferList->payload);
-
-        soundBufferList->destroy();
+  if (pulseUp) {
+    pulse += deltaTime;
+    if (pulse >= 1) {
+      pulseUp = false;
     }
-
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-
-	ImGui::NewFrame();
-	ImGui::Begin("Dev Tools", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 8.0f));
-	ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.2f, 0.4f, 0.6f, 0.5f));
-	ImGuiIO &io = ImGui::GetIO();
-	float fps = io.Framerate;
-	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Performance");
-	ImGui::Separator();
-	ImGui::Text("Frame Rate: %.2f FPS", fps);
-	ImGui::Spacing();
-	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Dope Parameters");
-	ImGui::Separator();
-	ImGui::SliderFloat("Inactive1", &influences[0], 0.0f, 6.5f, "%.3f");
-	ImGui::SliderFloat("Inactive2", &influences[1], 0.0f, 6.5f, "%.3f");
-	ImGui::SliderFloat("Mirror Balls Location", &influences[2], 0.0f, 6.5f,
-					   "%.3f");
-	ImGui::SliderFloat("Mirror Balls Size", &influences[3], 0.0f, 5.0f, "%.3f");
-
-	if (ImGui::Button("SAVE")) {
-		this->save();
-	}
-
-    ImGui::Checkbox("AUDIO DEBUG VIEW", &audioDebugComponent.isShown);
-    if (audioDebugComponent.isShown) {
-        ImGui::PlotLines(
-            "waveform",
-            currentSoundBuffer.data(),
-            static_cast<int>(currentSoundBuffer.size()),
-            0,
-            nullptr,
-            0, audioDebugComponent.scale,
-            ImVec2(0, 100)
-        );
-        ImGui::SliderFloat("scale", &audioDebugComponent.scale, 0.0f, 1.0f);
+  } else {
+    pulse -= deltaTime;
+    if (pulse <= 0) {
+      pulseUp = true;
     }
+  }
 
-	ImGui::Spacing();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleVar(2);
-	ImGui::End();
+  glfwPollEvents();
+  this->mouse->update();
+  if (!mouse->clicked) {
+    this->influences[0] += this->mouse->deltaY;
+    this->influences[1] -= this->mouse->deltaX;
+  }
 
-	float currentFrame = glfwGetTime();
-	deltaTime = currentFrame - lastFrame;
-	lastFrame = currentFrame;
-	time += deltaTime;
+  // data model for sound visualization
+  std::vector<float> currentSoundBuffer;
 
-	//    std::cout << "Live dB: " << sound.getLevel() << std::endl;
+  // sound processing
+  if (auto *soundBufferList = sound.extractDataBufferList()) {
+    // would process only "head" of the stack, since it is the most relevant
+    // other sound frames could be processed too
+    // since we are moving, no extra allocations would occur
+    currentSoundBuffer = std::move(soundBufferList->payload);
+
+    soundBufferList->destroy();
+  }
+
+  ImGui_ImplOpenGL3_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
+
+  ImGui::NewFrame();
+  ImGui::Begin("Dev Tools", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 8.0f));
+  ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.2f, 0.4f, 0.6f, 0.5f));
+  ImGuiIO &io = ImGui::GetIO();
+  float fps = io.Framerate;
+  ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Performance");
+  ImGui::Separator();
+  ImGui::Text("Frame Rate: %.2f FPS", fps);
+  ImGui::Spacing();
+  ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Dope Parameters");
+  ImGui::Separator();
+  ImGui::SliderFloat("Inactive1", &influences[0], 0.0f, 6.5f, "%.3f");
+  ImGui::SliderFloat("Inactive2", &influences[1], 0.0f, 6.5f, "%.3f");
+  ImGui::SliderFloat("Mirror Balls Location", &influences[2], 0.0f, 6.5f, "%.3f");
+  ImGui::SliderFloat("Mirror Balls Size", &influences[3], 0.0f, 5.0f, "%.3f");
+
+  if (ImGui::Button("SAVE")) {
+    this->save();
+  }
+
+  ImGui::Checkbox("AUDIO DEBUG VIEW", &audioDebugComponent.isShown);
+  if (audioDebugComponent.isShown) {
+    ImGui::PlotLines("waveform", currentSoundBuffer.data(), static_cast<int>(currentSoundBuffer.size()), 0, nullptr, 0,
+                     audioDebugComponent.scale, ImVec2(0, 100));
+    ImGui::SliderFloat("scale", &audioDebugComponent.scale, 0.0f, 1.0f);
+  }
+
+  ImGui::Spacing();
+  ImGui::PopStyleColor();
+  ImGui::PopStyleVar(2);
+  ImGui::End();
+
+  float currentFrame = glfwGetTime();
+  deltaTime = currentFrame - lastFrame;
+  lastFrame = currentFrame;
+  time += deltaTime;
+
+  //    std::cout << "Live dB: " << sound.getLevel() << std::endl;
 }
 
 void Engine::render() {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	scene.setUniforms(modelLeft, view, projection, glm::vec2(0, 0), aspect,
-					  mouse->clicked, time, pulse, sound.getLevel());
-	defaultShader.setVector4f("influences", influences);
-	defaultShader.use();
-	scene.draw();
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+  scene.setUniforms(modelLeft, view, projection, glm::vec2(0, 0), aspect, mouse->clicked, time, pulse,
+                    sound.getLevel());
+  defaultShader.setVector4f("influences", influences);
+  defaultShader.use();
+  scene.draw();
 
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+  ImGui::Render();
+  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-	glfwSwapBuffers(window);
+  glfwSwapBuffers(window);
 }
 
 bool Engine::shouldClose() { return glfwWindowShouldClose(window); }
 Engine::~Engine() {
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
 
-	if (audioThread.joinable())
-		audioThread.join();
+  if (audioThread.joinable()) audioThread.join();
 }
 
 void Engine::save() {
-    std::cout << "saved" << std::endl;
-	std::ofstream fwriter("../saves/this.frag");
-	std::ofstream vwriter("../saves/this.vert");
-	std::ofstream uwriter("../saves/uniforms.text");
-	fwriter << this->shaderManager->fragmentCode;
-	vwriter << this->shaderManager->vertexCode;
-	fwriter.close();
-	vwriter.close();
+  std::cout << "saved" << std::endl;
+  std::ofstream fwriter("../saves/this.frag");
+  std::ofstream vwriter("../saves/this.vert");
+  std::ofstream uwriter("../saves/uniforms.text");
+  fwriter << this->shaderManager->fragmentCode;
+  vwriter << this->shaderManager->vertexCode;
+  fwriter.close();
+  vwriter.close();
 }
