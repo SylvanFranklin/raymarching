@@ -59,6 +59,7 @@ class Engine {
   void draw();
   void update();
   void render();
+  bool shouldClose();
 
   float deltaTime = 0.0f;
   float lastFrame = 0.0f;
@@ -70,7 +71,10 @@ class Engine {
     bool isShown = false;
   } audioDebugComponent;
 
-  bool shouldClose();
+  struct AudioState {
+    std::vector<float> buffer;
+    float level;
+  } audioState;
 };
 
 #endif  // GRAPHICS_ENGINE_H
