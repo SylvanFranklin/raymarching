@@ -1,24 +1,27 @@
 cmake_minimum_required(VERSION 3.15) 
 project(Ray_Marcher)
 set(CMAKE_CXX_STANDARD 17)
-
 ## ~ CONFIGURE DEPENDENCIES ~
 # Set versions of dependencies
 set(GLFW_VERSION 3.3.9)
 set(GLM_VERSION 1.0.1)
 set(RTAUDIO_VERSION 6.0.1)
-
+set(KISSFFT_VERSION 131.1.0)
 # Do not build other non-important things
 option(GLFW_BUILD_DOCS ON)
 option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS ON)
 option(GLFW_USE_WAYLAND OFF)
-
 # RtAudio configuration options
 set(RTAUDIO_BUILD_TESTING OFF CACHE BOOL "Build RtAudio tests" FORCE)
 set(RTAUDIO_BUILD_PYTHON OFF CACHE BOOL "Build PyRtAudio python bindings" FORCE)
 set(RTAUDIO_TARGETNAME_UNINSTALL "rtaudio_uninstall" CACHE STRING "Name of RtAudio uninstall build target" FORCE)
-
+# KissFFT configuration options
+set(KISSFFT_PKGCONFIG OFF CACHE BOOL "Build KissFFT pkg-config" FORCE)
+set(KISSFFT_STATIC ON CACHE BOOL "Build KissFFT as static library" FORCE)
+set(KISSFFT_TEST OFF CACHE BOOL "Build KissFFT tests" FORCE)
+set(KISSFFT_TOOLS OFF CACHE BOOL "Build KissFFT tools" FORCE)
+set(KISSFFT_DATATYPE "float" CACHE STRING "KissFFT datatype" FORCE)
 # Platform-specific RtAudio API options
 if(APPLE)
     option(RTAUDIO_API_CORE "Build CoreAudio API" ON)
@@ -29,11 +32,9 @@ elseif(UNIX)
     option(RTAUDIO_API_ALSA "Build ALSA API" ON)
     option(RTAUDIO_API_PULSE "Build PulseAudio API" ON)
 endif()
-
 ## ~ FETCH DEPENDENCIES ~
 # Include FetchContent
 include(FetchContent)
-
 # Fetch GLFW
 FetchContent_Declare(
     glfw
@@ -41,7 +42,6 @@ FetchContent_Declare(
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(glfw)
-
 # Fetch GLM
 FetchContent_Declare(
     glm
@@ -49,7 +49,6 @@ FetchContent_Declare(
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(glm)
-
 # Fetch RtAudio
 FetchContent_Declare(
     rtaudio
@@ -57,7 +56,14 @@ FetchContent_Declare(
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(rtaudio)
-
+# Fetch KissFFT
+FetchContent_Declare(
+    kissfft
+    GIT_REPOSITORY https://github.com/mborgerding/kissfft.git
+    GIT_TAG ${KISSFFT_VERSION}
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(kissfft)
 # Fetch GLAD
 FetchContent_Declare(
     glad
@@ -66,10 +72,8 @@ FetchContent_Declare(
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_Populate(glad)
-
 # Include GLAD
 include_directories(${glad_SOURCE_DIR}/include)
-
 ## ~ COMPILER SETTINGS ~
 # Set compiler flags based on compiler
 if(MSVC)
@@ -83,11 +87,9 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") # Check if using GCC
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") # Check if using Clang
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif()
-
 ## ~ BUILD FILES ~
 # Set which project you would like to build
 set(B_TARGET "src")
-
 # Set source files
 file(GLOB VENDORS_SOURCES ${glad_SOURCE_DIR}/src/glad.c)
 file(GLOB_RECURSE PROJECT_HEADERS ${B_TARGET}/*.h)
@@ -97,31 +99,26 @@ file(GLOB PROJECT_CONFIGS CMakeLists.txt
                          .gitattributes
                          .gitignore
                          .gitmodules)
-
 # Add globs to sources
 source_group("Headers" FILES ${PROJECT_HEADERS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Vendors" FILES ${VENDORS_SOURCES})
-
 # Important GLFW definitions
 add_definitions(-DGLFW_INCLUDE_NONE
                 -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
-
 ## ~ BUILD PROJECTS ~
-
 # Build your OpenGL/GLFW ray marcher with audio support
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${VENDORS_SOURCES})
-
 # Link libraries - order matters for some linkers
 target_link_libraries(${PROJECT_NAME} 
     glfw 
     glm
     rtaudio
+    kissfft::kissfft
     ${GLAD_LIBRARIES}
 )
-
 if (GLFW_USE_WAYLAND)
     find_package(OpenGL REQUIRED COMPONENTS EGL)
     target_link_libraries(${PROJECT_NAME}
@@ -129,4 +126,3 @@ if (GLFW_USE_WAYLAND)
         OpenGL::EGL
         )
 endif ()
-
