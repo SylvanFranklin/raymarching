@@ -65,6 +65,32 @@ float sdTorus(vec3 p, vec2 t) {
   return length(repeat(vec3(q, 1.0), 0.3)) - t.y;
 }
 
+// iq
+float sdPyramid(vec3 p, float h)
+{
+  float m2 = h * h + 0.25;
+
+  p.xz = abs(p.xz);
+  p.xz = (p.z > p.x) ? p.zx : p.xz;
+  p.xz -= 0.5;
+
+  vec3 q = vec3(p.z, h * p.y - 0.5 * p.x, h * p.x + 0.5 * p.y);
+
+  float s = max(-q.x, 0.0);
+  float t = clamp((q.y - 0.5 * p.z) / (m2 + 0.25), 0.0, 1.0);
+
+  float a = m2 * (q.x + s) * (q.x + s) + q.y * q.y;
+  float b = m2 * (q.x + 0.5 * t) * (q.x + 0.5 * t) + (q.y - m2 * t) * (q.y - m2 * t);
+
+  float d2 = min(q.y, -q.x * m2 - q.y * 0.5) > 0.0 ? 0.0 : min(a, b);
+
+  if (p.y < 0.0) {
+    return length(max(abs(p) - vec3(.5, 0, .5), 0));
+  }
+
+  return sqrt((d2 + q.z * q.z) / m2) * sign(max(q.z, -p.y));
+}
+
 float sdLink(vec3 p, float le, float r1, float r2) {
   vec3 q = vec3(p.x, max(abs(p.y) - le, 0.0), p.z);
   return length(vec2(length(q.xy) - r1, q.z)) - r2;
@@ -102,6 +128,19 @@ float sdCross(vec3 p) {
 //    return distance;
 //}
 
+float sdTriPrism(vec3 p)
+
+{
+	vec2 h = vec2(1, 1);
+  vec3 q = abs(p);
+  return max(q.z - h.y, max(q.x * 0.866025 + p.y * 0.5, -p.y) - h.x * 0.5);
+}
+
+float sdCrossPyramid(vec3 p) {
+  float that = sdTriPrism(p);
+  return that;
+}
+
 // All objects that are marched to are defined in this function
 // The reason this returns a vec2 is so that we can color objects
 // in different ways. That is all. The x chord is the float
@@ -109,22 +148,32 @@ float sdCross(vec3 p) {
 vec2 map_the_world(vec3 p) {
   mat2 r = rot2D(time / 3);
   p = vec3(p.x, p.y, p.z);
-  p.zy *= r;
+  // p.zy *= r;
   p.xz *= r;
-  float size = 1 + (frequencies[0] / 1000.0);
-  float d = sdBox(twist(p, 2), vec3(size));
-  float s = 1;
-  float resolution = 5;
-  for (int m = 0; m < (resolution); m++)
-  {
-    vec3 a = mod(p * s, 2.0) - 1.0;
-    s *= 3.0;
+  // float size = 1;
+  // float d = sdBox(twist(p, 2), vec3(size));
+  // float s = 1;
+  // float resolution = 5;
+  // for (int m = 0; m < (resolution); m++) {
+  //   vec3 a = mod(p * s, 2.0) - 1.0;
+  //   s *= 3.0;
+  //   vec3 r = 1.0 - 3.0 * abs(a);
+  //
+  //   float c = sdCross(r) / s;
+  //   d = max(d, c);
+  // }
+  float d = sdPyramid(p, 1);
+  float scale = 3.0;
+  float resolution = 4;
+  for (int m = 0; m < (resolution); m++) {
+    vec3 a = mod(p * scale, 2.0) - 1.0;
+    scale *= 3.0;
     vec3 r = 1.0 - 3.0 * abs(a);
-
-    float c = sdCross(r) / s;
+    float c = sdCrossPyramid(r) / scale;
     d = max(d, c);
   }
-  return vec2(d, 1);
+
+  return vec2(d, 2);
 }
 
 // https://michaelwalczyk.com/blog-ray-marching.html
@@ -144,12 +193,12 @@ void main() {
   int step_count = 0;
   int bounces = 0;
 
-  vec3 color = vec3(1);
-  const float MAXIMUM_DISTANCE = 10;
+  vec3 color = vec3(0);
   const int MAXIMUM_STEPS = 100;
   const int MAXIMUM_BOUNCES = 10;
-  const float MINIMUM_DISTANCE = 0.001;
-  const float view_threshold = 4.0;
+  const float MINIMUM_DISTANCE = 0.0001;
+  const float MAXIMUM_DISTANCE = 10;
+  const float view_threshold = 0.0;
 
   // Render loop
   while (step_count < MAXIMUM_STEPS) {
@@ -177,6 +226,11 @@ void main() {
       if (closest_object.y == 2) {
         vec3 normal = GetSurfaceNormal(p);
         color = vec3(abs(normal.x), abs(normal.y), abs(normal.z));
+        break;
+      }
+      // solid
+      if (closest_object.y == 3) {
+        color = vec3(1.0, 0.0, 0.2);
         break;
       }
     }

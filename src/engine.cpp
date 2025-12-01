@@ -171,10 +171,10 @@ void Engine::update() {
       smaller_buckets[i] = std::log10(smaller_buckets[i] + 1e-10f);
     }
     this->frequencies = smaller_buckets;
-    for (int i = 0; i < 4; ++i) {
-      cout << frequencies[i] << " ";
-    }
-    cout << endl;
+    // for (int i = 0; i < 4; ++i) {
+    //   cout << frequencies[i] << " ";
+    // }
+    // cout << endl;
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
