@@ -47,6 +47,7 @@ class Engine {
   Scene scene;
   std::unique_ptr<Sound> sound;
   Shader defaultShader;
+  glm::vec4 frequencies = glm::vec4(0.0);
   const glm::mat4 PROJECTION =
       glm::ortho(0.0f, static_cast<float>(this->width), 0.0f, static_cast<float>(this->height), -1.0f, 1.0f);
 

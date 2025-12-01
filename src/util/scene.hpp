@@ -25,7 +25,7 @@ class Scene {
   void draw();
   void setUniforms(const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection,
                    const glm::vec2 &mouse_pos, const float &aspect, bool &clicked, const float &time,
-                   const float &pulse, const float &level) const;
+                   const float &pulse, const float &level, const glm::vec4 &frequencies) const;
 };
 
 #endif  // SCENE_HPP

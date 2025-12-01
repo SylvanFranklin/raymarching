@@ -3,18 +3,13 @@ uniform bool clicked;
 uniform float time;
 uniform vec4 influences;
 uniform float pulse;
-uniform float db;
+uniform float db; // sounds
+uniform vec4 frequencies;
 
 in vec2 uv;
 out vec4 FragColor;
 
-const float MAXIMUM_DISTANCE = 10;
-const float MINIMUM_DISTANCE = 0.001;
-const int MAXIMUM_STEPS = 100;
-
-// Utils
-
-vec3 marchRay(vec3 p, vec3 rd, float distance) {
+vec3 march(vec3 p, vec3 rd, float distance) {
   return p + (rd * distance);
 }
 
@@ -25,11 +20,9 @@ vec2 closest(vec2 obj1, vec2 obj2) {
   return obj2;
 }
 
-vec3 twist(vec3 p) {
-  float thing = min(db / -10 - 3, 2);
-  float k = thing;
-  float c = cos(k * p.y);
-  float s = sin(k * p.y);
+vec3 twist(vec3 p, float amount) {
+  float c = cos(amount * p.y);
+  float s = sin(amount * p.y);
   mat2 m = mat2(c, -s, s, c);
   vec3 q = vec3(m * p.xz, p.y);
   return q;
@@ -51,8 +44,6 @@ float smin(float a, float b, float k) {
   float h = max(k - abs(a - b), 0.0) / k;
   return min(a, b) - h * h * h * k * (1.0 / 6.0);
 }
-
-// Shapes
 
 float sdSphere(vec3 p, float r) {
   return length(p) - r;
@@ -111,23 +102,20 @@ float sdCross(vec3 p) {
 //    return distance;
 //}
 
-vec2 distanceToClosestObject(vec3 p) {
+// All objects that are marched to are defined in this function
+// The reason this returns a vec2 is so that we can color objects
+// in different ways. That is all. The x chord is the float
+// distance, and the y is 0, 1, or 2, for the different color modes.
+vec2 map_the_world(vec3 p) {
   mat2 r = rot2D(time / 3);
-  p = twist(vec3(p.x, p.y, p.z));
-
-  vec3 spherePos = p;
-  spherePos.x -= influences[2];
-  vec2 sphere1 = vec2(sdSphere(spherePos, influences[3]), 1);
-  spherePos.x += 2 * influences[2];
-  vec2 sphere2 = vec2(sdSphere(spherePos, influences[3]), 1);
-
+  p = vec3(p.x, p.y, p.z);
   p.zy *= r;
   p.xz *= r;
-  float d = sdBox(p, vec3(1));
-
-  float s = 2.0;
-  float thing = min(db / -10 - 3, 2);
-  for (int m = 0; m < (thing); m++)
+  float size = 1 + (frequencies[0] / 1000.0);
+  float d = sdBox(twist(p, 2), vec3(size));
+  float s = 1;
+  float resolution = 5;
+  for (int m = 0; m < (resolution); m++)
   {
     vec3 a = mod(p * s, 2.0) - 1.0;
     s *= 3.0;
@@ -136,7 +124,7 @@ vec2 distanceToClosestObject(vec3 p) {
     float c = sdCross(r) / s;
     d = max(d, c);
   }
-  return closest(vec2(d, 2), closest(sphere1, sphere2));
+  return vec2(d, 1);
 }
 
 // https://michaelwalczyk.com/blog-ray-marching.html
@@ -144,9 +132,9 @@ vec3 GetSurfaceNormal(vec3 p)
 {
   const float eps = 0.0001;
   const vec2 h = vec2(eps, 0);
-  return normalize(vec3(distanceToClosestObject(p + h.xyy).x - distanceToClosestObject(p - h.xyy).x,
-      distanceToClosestObject(p + h.yxy).x - distanceToClosestObject(p - h.yxy).x,
-      distanceToClosestObject(p + h.yyx).x - distanceToClosestObject(p - h.yyx).x));
+  return normalize(vec3(map_the_world(p + h.xyy).x - map_the_world(p - h.xyy).x,
+      map_the_world(p + h.yxy).x - map_the_world(p - h.yxy).x,
+      map_the_world(p + h.yyx).x - map_the_world(p - h.yyx).x));
 }
 
 void main() {
@@ -155,27 +143,34 @@ void main() {
   vec3 ray_direction = normalize(vec3(uv, 3));
   int step_count = 0;
   int bounces = 0;
-  vec3 color = vec3(0);
+
+  vec3 color = vec3(1);
+  const float MAXIMUM_DISTANCE = 10;
+  const int MAXIMUM_STEPS = 100;
+  const int MAXIMUM_BOUNCES = 10;
+  const float MINIMUM_DISTANCE = 0.001;
+  const float view_threshold = 4.0;
 
   // Render loop
   while (step_count < MAXIMUM_STEPS) {
-    vec3 p = marchRay(ray_origin, ray_direction, distance_traveled);
-    vec2 closest_object = distanceToClosestObject(p);
+    vec3 p = march(ray_origin, ray_direction, distance_traveled);
+    vec2 closest_object = map_the_world(p);
     distance_traveled += closest_object.x;
 
     // hit
     if (closest_object.x <= MINIMUM_DISTANCE) {
       // reflect the ray
-      if (closest_object.y == 0 && bounces < 3) {
-        ray_origin = p;
+      if (closest_object.y == 0 && bounces < MAXIMUM_BOUNCES) {
         ray_direction = reflect(ray_direction, GetSurfaceNormal(p));
-        distance_traveled = 0.01; // offset to prevent the ray being "trapped" within the collision.
+        ray_origin = p;
+        distance_traveled = 0.11; // offset to prevent the ray being "trapped" within the collision.
         bounces++;
       }
       // color by distance traveled
       if (closest_object.y == 1) {
         float col = (1 / distance_traveled);
-        color = vec3(col + 0.2, db / -100, 0.2 + col);
+        // color = vec3(col + 0.2, db / -100, 0.2 + col);
+        color = vec3(col + 0.2, col, 0.2 + col);
         break;
       }
       // color by normal
