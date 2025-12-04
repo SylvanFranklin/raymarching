@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 
+#include <complex>
 #include <glm/glm.hpp>
 #include <memory>
 #include <thread>
@@ -74,6 +75,7 @@ class Engine {
 
   struct AudioState {
     std::vector<float> buffer;
+    std::vector<std::complex<float>> fftOutput;
     float level;
   } audioState;
 };
