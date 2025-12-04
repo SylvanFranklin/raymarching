@@ -14,6 +14,7 @@ using namespace std;
 #include "vendor/imgui/imgui_impl_opengl3.h"
 
 kiss_fft_cfg fwd = kiss_fft_alloc(256, 0, NULL, NULL);
+const int nfft = 256;
 
 Engine::Engine() : sound{Sound::create()} {
   this->initWindow();
@@ -132,7 +133,6 @@ void Engine::update() {
       }
     };
 
-    audioState.buffer.clear();
     forEach(reverse(soundBufferList), [&](Sound::DataBufferNode &node) {
       if (audioState.buffer.empty()) {
         audioState.buffer = std::move(node.payload);
@@ -141,6 +141,10 @@ void Engine::update() {
       }
     });
     soundBufferList->destroy();
+
+    const size_t requiredSize = nfft * 2;
+    const size_t countToErase = audioState.buffer.size() > requiredSize ? audioState.buffer.size() - requiredSize : 0;
+    audioState.buffer.erase(audioState.buffer.begin(), std::next(audioState.buffer.begin(), countToErase));
 
     if (!audioState.buffer.empty()) {
       const float audioBufferSum = std::accumulate(audioState.buffer.begin(), audioState.buffer.end(), 0.f,
@@ -151,31 +155,32 @@ void Engine::update() {
     }
   }
 
-  const int nfft = 256;
-  std::vector<std::complex<float>> output(nfft, 0.0);
-  kiss_fft(fwd, (kiss_fft_cpx *)&audioState.buffer[0], (kiss_fft_cpx *)&output[0]);
-  for (int k = 0; k < nfft; ++k) {
-    output[k] = output[k] * conj(output[k]);
-    output[k] *= 1. / nfft;
-  }
-  glm::vec4 smaller_buckets = glm::vec4(0.0);
-  const int buckets = nfft / 64;
-
-  for (int i = 0; i < buckets; i++) {
-    int start = (64 * i);
-    if (i == 0) start = 1;  // Skip DC
-
-    for (int j = start; j < (64 * (i + 1)); j++) {
-      smaller_buckets[i] += output[j].real();
+  if (audioState.buffer.size() >= nfft * 2) {
+    std::vector<std::complex<float>> output(nfft, 0.0);
+    kiss_fft(fwd, (kiss_fft_cpx *)audioState.buffer.data(), (kiss_fft_cpx *)output.data());
+    for (int k = 0; k < nfft; ++k) {
+      output[k] = output[k] * conj(output[k]);
+      output[k] *= 1. / nfft;
     }
-    // Log scale
-    smaller_buckets[i] = std::log10(smaller_buckets[i] + 1e-10f);
+    glm::vec4 smaller_buckets = glm::vec4(0.0);
+    const int buckets = nfft / 64;
+
+    for (int i = 0; i < buckets; i++) {
+      int start = (64 * i);
+      if (i == 0) start = 1;  // Skip DC
+
+      for (int j = start; j < (64 * (i + 1)); j++) {
+        smaller_buckets[i] += output[j].real();
+      }
+      // Log scale
+      smaller_buckets[i] = std::log10(smaller_buckets[i] + 1e-10f);
+    }
+    this->frequencies = smaller_buckets;
+    // for (int i = 0; i < 4; ++i) {
+    //   cout << frequencies[i] << " ";
+    // }
+    // cout << endl;
   }
-  this->frequencies = smaller_buckets;
-  // for (int i = 0; i < 4; ++i) {
-  //   cout << frequencies[i] << " ";
-  // }
-  // cout << endl;
 
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
