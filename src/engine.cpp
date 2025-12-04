@@ -1,7 +1,6 @@
 #include "engine.hpp"
 using namespace std;
 
-#include <complex>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -24,6 +23,8 @@ Engine::Engine() : sound{Sound::create()} {
   if (!sound->start()) {
     std::cerr << "Failed to start audio capture" << std::endl;
   }
+
+  audioState.fftOutput.assign(nfft, std::complex<float>{});
 }
 
 unsigned int Engine::initWindow(bool debug) {
@@ -156,11 +157,10 @@ void Engine::update() {
   }
 
   if (audioState.buffer.size() >= nfft * 2) {
-    std::vector<std::complex<float>> output(nfft, 0.0);
-    kiss_fft(fwd, (kiss_fft_cpx *)audioState.buffer.data(), (kiss_fft_cpx *)output.data());
+    kiss_fft(fwd, (kiss_fft_cpx *)audioState.buffer.data(), (kiss_fft_cpx *)audioState.fftOutput.data());
     for (int k = 0; k < nfft; ++k) {
-      output[k] = output[k] * conj(output[k]);
-      output[k] *= 1. / nfft;
+      audioState.fftOutput[k] = audioState.fftOutput[k] * conj(audioState.fftOutput[k]);
+      audioState.fftOutput[k] *= 1. / nfft;
     }
     glm::vec4 smaller_buckets = glm::vec4(0.0);
     const int buckets = nfft / 64;
@@ -170,7 +170,7 @@ void Engine::update() {
       if (i == 0) start = 1;  // Skip DC
 
       for (int j = start; j < (64 * (i + 1)); j++) {
-        smaller_buckets[i] += output[j].real();
+        smaller_buckets[i] += audioState.fftOutput[j].real();
       }
       // Log scale
       smaller_buckets[i] = std::log10(smaller_buckets[i] + 1e-10f);
@@ -211,6 +211,12 @@ void Engine::update() {
   if (audioDebugComponent.isShown) {
     ImGui::PlotLines("waveform", audioState.buffer.data(), static_cast<int>(audioState.buffer.size()), 0, nullptr, 0,
                      audioDebugComponent.scale, ImVec2(0, 100));
+    ImGui::PlotLines("fft real", (float *)audioState.fftOutput.data(), static_cast<int>(audioState.fftOutput.size()),
+                     /*values_offset=*/0, nullptr, 0, audioDebugComponent.scale, ImVec2(0, 100),
+                     /*stride=*/sizeof(float) * 2);
+    ImGui::PlotLines("fft imag", (float *)audioState.fftOutput.data(), static_cast<int>(audioState.fftOutput.size()),
+                     /*values_offset=*/1, nullptr, 0, audioDebugComponent.scale, ImVec2(0, 100),
+                     /*stride=*/sizeof(float) * 2);
     ImGui::SliderFloat("scale", &audioDebugComponent.scale, 0.0f, 1.0f);
   }
 
