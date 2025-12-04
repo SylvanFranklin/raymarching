@@ -149,77 +149,77 @@ void Engine::update() {
       const float db = 20.0 * std::log10(rms + 1e-10f);
       audioState.level = db;
     }
-
-    const int nfft = 256;
-    std::vector<std::complex<float>> output(nfft, 0.0);
-    kiss_fft(fwd, (kiss_fft_cpx *)&audioState.buffer[0], (kiss_fft_cpx *)&output[0]);
-    for (int k = 0; k < nfft; ++k) {
-      output[k] = output[k] * conj(output[k]);
-      output[k] *= 1. / nfft;
-    }
-    glm::vec4 smaller_buckets = glm::vec4(0.0);
-    const int buckets = nfft / 64;
-
-    for (int i = 0; i < buckets; i++) {
-      int start = (64 * i);
-      if (i == 0) start = 1;  // Skip DC
-
-      for (int j = start; j < (64 * (i + 1)); j++) {
-        smaller_buckets[i] += output[j].real();
-      }
-      // Log scale
-      smaller_buckets[i] = std::log10(smaller_buckets[i] + 1e-10f);
-    }
-    this->frequencies = smaller_buckets;
-    // for (int i = 0; i < 4; ++i) {
-    //   cout << frequencies[i] << " ";
-    // }
-    // cout << endl;
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-
-    ImGui::NewFrame();
-    ImGui::Begin("Dev Tools", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 8.0f));
-    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.2f, 0.4f, 0.6f, 0.5f));
-    ImGuiIO &io = ImGui::GetIO();
-    float fps = io.Framerate;
-    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Performance");
-    ImGui::Separator();
-    ImGui::Text("Frame Rate: %.2f FPS", fps);
-    ImGui::Spacing();
-    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Dope Parameters");
-    ImGui::Separator();
-    ImGui::SliderFloat("Inactive1", &influences[0], 0.0f, 6.5f, "%.3f");
-    ImGui::SliderFloat("Inactive2", &influences[1], 0.0f, 6.5f, "%.3f");
-    ImGui::SliderFloat("Mirror Balls Location", &influences[2], 0.0f, 6.5f, "%.3f");
-    ImGui::SliderFloat("Mirror Balls Size", &influences[3], 0.0f, 5.0f, "%.3f");
-
-    if (ImGui::Button("SAVE")) {
-      this->save();
-    }
-
-    ImGui::Checkbox("AUDIO DEBUG VIEW", &audioDebugComponent.isShown);
-    if (audioDebugComponent.isShown) {
-      ImGui::PlotLines("waveform", audioState.buffer.data(), static_cast<int>(audioState.buffer.size()), 0, nullptr, 0,
-                       audioDebugComponent.scale, ImVec2(0, 100));
-      ImGui::SliderFloat("scale", &audioDebugComponent.scale, 0.0f, 1.0f);
-    }
-
-    ImGui::Spacing();
-    ImGui::PopStyleColor();
-    ImGui::PopStyleVar(2);
-    ImGui::End();
-
-    float currentFrame = glfwGetTime();
-    deltaTime = currentFrame - lastFrame;
-    lastFrame = currentFrame;
-    time += deltaTime;
-
-    //    std::cout << "Live dB: " << sound->getLevel() << std::endl;
   }
+
+  const int nfft = 256;
+  std::vector<std::complex<float>> output(nfft, 0.0);
+  kiss_fft(fwd, (kiss_fft_cpx *)&audioState.buffer[0], (kiss_fft_cpx *)&output[0]);
+  for (int k = 0; k < nfft; ++k) {
+    output[k] = output[k] * conj(output[k]);
+    output[k] *= 1. / nfft;
+  }
+  glm::vec4 smaller_buckets = glm::vec4(0.0);
+  const int buckets = nfft / 64;
+
+  for (int i = 0; i < buckets; i++) {
+    int start = (64 * i);
+    if (i == 0) start = 1;  // Skip DC
+
+    for (int j = start; j < (64 * (i + 1)); j++) {
+      smaller_buckets[i] += output[j].real();
+    }
+    // Log scale
+    smaller_buckets[i] = std::log10(smaller_buckets[i] + 1e-10f);
+  }
+  this->frequencies = smaller_buckets;
+  // for (int i = 0; i < 4; ++i) {
+  //   cout << frequencies[i] << " ";
+  // }
+  // cout << endl;
+
+  ImGui_ImplOpenGL3_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
+
+  ImGui::NewFrame();
+  ImGui::Begin("Dev Tools", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 8.0f));
+  ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.2f, 0.4f, 0.6f, 0.5f));
+  ImGuiIO &io = ImGui::GetIO();
+  float fps = io.Framerate;
+  ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Performance");
+  ImGui::Separator();
+  ImGui::Text("Frame Rate: %.2f FPS", fps);
+  ImGui::Spacing();
+  ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Dope Parameters");
+  ImGui::Separator();
+  ImGui::SliderFloat("Inactive1", &influences[0], 0.0f, 6.5f, "%.3f");
+  ImGui::SliderFloat("Inactive2", &influences[1], 0.0f, 6.5f, "%.3f");
+  ImGui::SliderFloat("Mirror Balls Location", &influences[2], 0.0f, 6.5f, "%.3f");
+  ImGui::SliderFloat("Mirror Balls Size", &influences[3], 0.0f, 5.0f, "%.3f");
+
+  if (ImGui::Button("SAVE")) {
+    this->save();
+  }
+
+  ImGui::Checkbox("AUDIO DEBUG VIEW", &audioDebugComponent.isShown);
+  if (audioDebugComponent.isShown) {
+    ImGui::PlotLines("waveform", audioState.buffer.data(), static_cast<int>(audioState.buffer.size()), 0, nullptr, 0,
+                     audioDebugComponent.scale, ImVec2(0, 100));
+    ImGui::SliderFloat("scale", &audioDebugComponent.scale, 0.0f, 1.0f);
+  }
+
+  ImGui::Spacing();
+  ImGui::PopStyleColor();
+  ImGui::PopStyleVar(2);
+  ImGui::End();
+
+  float currentFrame = glfwGetTime();
+  deltaTime = currentFrame - lastFrame;
+  lastFrame = currentFrame;
+  time += deltaTime;
+
+  //    std::cout << "Live dB: " << sound->getLevel() << std::endl;
 }
 
 void Engine::render() {
