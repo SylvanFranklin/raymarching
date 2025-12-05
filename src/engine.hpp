@@ -77,6 +77,7 @@ class Engine {
     std::vector<float> buffer;
     std::vector<std::complex<float>> fftOutput;
     float level;
+    float prevLevel;
   } audioState;
 };
 
