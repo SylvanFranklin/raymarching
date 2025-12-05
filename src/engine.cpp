@@ -152,7 +152,9 @@ void Engine::update() {
                                                    [](float acc, float x) { return acc + (x * x); });
       const float rms = std::sqrt(audioBufferSum / audioState.buffer.size());
       const float db = 20.0 * std::log10(rms + 1e-10f);
-      audioState.level = db;
+      constexpr auto lerp = [](float a, float b, float t) -> float { return a + t * (b - a); };
+      audioState.level = lerp(audioState.prevDb, db, 0.1);
+      audioState.prevDb = audioState.level;
     }
   }
 
