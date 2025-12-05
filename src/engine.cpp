@@ -107,10 +107,10 @@ void Engine::update() {
 
   glfwPollEvents();
   this->mouse->update();
-  if (!mouse->clicked) {
-    this->influences[0] += this->mouse->deltaY;
-    this->influences[1] -= this->mouse->deltaX;
-  }
+  // if (!mouse->clicked) {
+  //   this->influences[0] += this->mouse->deltaY;
+  //   this->influences[1] -= this->mouse->deltaX;
+  // }
 
   // sound processing
   if (auto *soundBufferList = sound->extractDataBufferList()) {
@@ -184,28 +184,27 @@ void Engine::update() {
 
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
-
   ImGui::NewFrame();
-  ImGui::Begin("Dev Tools", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 8.0f));
-  ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.2f, 0.4f, 0.6f, 0.5f));
+  ImGui::Begin("Simulation Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(9.0f, 9.0f));
+  ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.2f, 0.0f, 0.0f, 0.5f));
   ImGuiIO &io = ImGui::GetIO();
   float fps = io.Framerate;
   ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Performance");
   ImGui::Separator();
   ImGui::Text("Frame Rate: %.2f FPS", fps);
   ImGui::Spacing();
-  ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Dope Parameters");
+  ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Parameters");
   ImGui::Separator();
-  ImGui::SliderFloat("Inactive1", &influences[0], 0.0f, 6.5f, "%.3f");
-  ImGui::SliderFloat("Inactive2", &influences[1], 0.0f, 6.5f, "%.3f");
-  ImGui::SliderFloat("Mirror Balls Location", &influences[2], 0.0f, 6.5f, "%.3f");
-  ImGui::SliderFloat("Mirror Balls Size", &influences[3], 0.0f, 5.0f, "%.3f");
+  ImGui::SliderFloat("input 1", &influences[0], 0.0f, 10.0f, "%.1f");
+  ImGui::SliderFloat("input 2", &influences[1], 0.0f, 10.0f, "%.1f");
+  ImGui::SliderFloat("input 3", &influences[2], 0.0f, 10.0f, "%.1f");
+  ImGui::SliderFloat("input 4", &influences[3], 0.0f, 10.0f, "%.1f");
 
-  if (ImGui::Button("SAVE")) {
-    this->save();
-  }
+  // if (ImGui::Button("SAVE")) {
+  //   this->save();
+  // }
 
   ImGui::Checkbox("AUDIO DEBUG VIEW", &audioDebugComponent.isShown);
   if (audioDebugComponent.isShown) {
